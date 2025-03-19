@@ -9,39 +9,51 @@ const GasPumpModel = () => {
   return (
     <group>
       {/* Gas pump base */}
-      <mesh position={[0, -1, 0]} receiveShadow castShadow>
+      <mesh position={[0, -1.5, 0]} receiveShadow castShadow>
         <boxGeometry args={[2, 0.2, 1.5]} />
         <meshStandardMaterial color="#ff6b35" />
       </mesh>
       
       {/* Gas pump body */}
-      <mesh position={[0, 0.5, 0]} receiveShadow castShadow>
+      <mesh position={[0, 0, 0]} receiveShadow castShadow>
         <boxGeometry args={[1.5, 3, 1]} />
         <meshStandardMaterial color="#2ec4b6" />
       </mesh>
       
-      {/* Gas pump display */}
-      <mesh position={[0, 1, 0.55]} receiveShadow castShadow>
-        <boxGeometry args={[1, 1, 0.1]} />
+      {/* Gas pump display frame */}
+      <mesh position={[0, 0.5, 0.55]} receiveShadow castShadow>
+        <boxGeometry args={[1.2, 1.2, 0.1]} />
         <meshStandardMaterial color="#011627" />
       </mesh>
       
+      {/* Gas pump display screen (will be overlaid with HTML) */}
+      <mesh position={[0, 0.5, 0.56]} receiveShadow castShadow>
+        <boxGeometry args={[1, 1, 0.05]} />
+        <meshStandardMaterial color="#000000" />
+      </mesh>
+      
       {/* Gas pump nozzle holder */}
-      <mesh position={[0.9, 0, 0]} receiveShadow castShadow>
+      <mesh position={[0.9, -0.5, 0]} receiveShadow castShadow>
         <boxGeometry args={[0.3, 0.5, 0.3]} />
         <meshStandardMaterial color="#011627" />
       </mesh>
       
       {/* Gas pump hose */}
-      <mesh position={[0.9, 0.5, 0]} receiveShadow castShadow>
+      <mesh position={[0.9, 0, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[0.05, 0.05, 2, 16]} />
         <meshStandardMaterial color="#333" />
       </mesh>
       
       {/* Gas pump nozzle */}
-      <mesh position={[0.9, -0.5, 0]} receiveShadow castShadow>
+      <mesh position={[0.9, -1, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[0.1, 0.2, 0.5, 16]} />
         <meshStandardMaterial color="#011627" />
+      </mesh>
+      
+      {/* Control panel */}
+      <mesh position={[0, -0.7, 0.55]} receiveShadow castShadow>
+        <boxGeometry args={[1, 0.5, 0.1]} />
+        <meshStandardMaterial color="#444" />
       </mesh>
     </group>
   );
@@ -53,7 +65,7 @@ const GasPumpScene = () => {
     <Canvas
       shadows
       camera={{ position: [0, 0, 5], fov: 50 }}
-      style={{ height: '200px' }}
+      style={{ height: '300px' }}
     >
       <ambientLight intensity={0.5} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} castShadow />
@@ -61,7 +73,7 @@ const GasPumpScene = () => {
       
       <PresentationControls
         global
-        rotation={[0, 0, 0]}
+        rotation={[0, -0.2, 0]}
         polar={[-Math.PI / 4, Math.PI / 4]}
         azimuth={[-Math.PI / 4, Math.PI / 4]}
       >
@@ -88,54 +100,57 @@ const GasPump: React.FC = () => {
       {/* Gas Pump Display */}
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-lg shadow-lg border-2 border-gray-700">
         {/* Gas Station Brand */}
-        <div className="text-center mb-2">
+        <div className="text-center mb-4">
           <div className="text-yellow-400 text-sm font-bold">PUMP PERFECTION</div>
           <div className="text-white text-xs">PREMIUM FUEL</div>
         </div>
         
-        {/* 3D Gas Pump */}
-        <div className="mb-4 bg-gray-700 rounded-lg p-2">
-          <GasPumpScene />
-        </div>
-        
-        {/* Digital Display */}
-        <div className="bg-black p-3 rounded border border-gray-700 mb-3">
-          <div className="flex justify-between items-center mb-2">
-            <div className="text-gray-400 text-sm">TARGET:</div>
-            <div className="font-mono bg-gray-900 px-2 py-1 rounded">
-              <span className="text-yellow-400 text-xl tracking-wider">
-                {formatCurrency(targetAmount)}
-              </span>
-            </div>
+        {/* Integrated Gas Pump with Digital Display */}
+        <div className="relative mb-4">
+          {/* 3D Gas Pump */}
+          <div className="h-[300px] bg-gray-700 rounded-lg overflow-hidden">
+            <GasPumpScene />
           </div>
           
-          {/* Current Amount - LED Display */}
-          <div className="bg-gray-900 p-2 rounded mb-2 border border-gray-700">
-            <div className="flex justify-between">
-              <div className="text-gray-400 text-xs">GALLONS</div>
-              <div className="text-gray-400 text-xs">PRICE</div>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="font-mono text-green-500 text-2xl tracking-widest led-display">
-                {(currentAmount / 3).toFixed(3)}
-              </div>
-              <div className="font-mono text-green-500 text-3xl tracking-widest font-bold led-display">
-                ${formatCurrency(currentAmount)}
+          {/* Digital Display - Positioned to look like part of the 3D model */}
+          <div className="absolute top-[60px] left-0 right-0 mx-auto w-[80%] bg-black p-3 rounded border border-gray-700 shadow-lg">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-gray-400 text-sm">TARGET:</div>
+              <div className="font-mono bg-gray-900 px-2 py-1 rounded">
+                <span className="text-yellow-400 text-xl tracking-wider">
+                  {formatCurrency(targetAmount)}
+                </span>
               </div>
             </div>
-            <div className="flex justify-between mt-1">
-              <div className="text-gray-400 text-xs">PRICE/GAL</div>
-              <div className="text-gray-400 text-xs font-mono">$3.000</div>
+            
+            {/* Current Amount - LED Display */}
+            <div className="bg-gray-900 p-2 rounded mb-2 border border-gray-700">
+              <div className="flex justify-between">
+                <div className="text-gray-400 text-xs">GALLONS</div>
+                <div className="text-gray-400 text-xs">PRICE</div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="font-mono text-green-500 text-2xl tracking-widest led-display">
+                  {(currentAmount / 3).toFixed(3)}
+                </div>
+                <div className="font-mono text-green-500 text-3xl tracking-widest font-bold led-display">
+                  ${formatCurrency(currentAmount)}
+                </div>
+              </div>
+              <div className="flex justify-between mt-1">
+                <div className="text-gray-400 text-xs">PRICE/GAL</div>
+                <div className="text-gray-400 text-xs font-mono">$3.000</div>
+              </div>
             </div>
-          </div>
-          
-          {/* Status Indicators */}
-          <div className="flex justify-between text-xs">
-            <div className={`${isPumping ? 'text-green-500' : 'text-gray-600'}`}>
-              {isPumping ? '● PUMPING' : '○ READY'}
-            </div>
-            <div className="text-gray-400">
-              REGULAR UNLEADED
+            
+            {/* Status Indicators */}
+            <div className="flex justify-between text-xs">
+              <div className={`${isPumping ? 'text-green-500' : 'text-gray-600'}`}>
+                {isPumping ? '● PUMPING' : '○ READY'}
+              </div>
+              <div className="text-gray-400">
+                REGULAR UNLEADED
+              </div>
             </div>
           </div>
         </div>
