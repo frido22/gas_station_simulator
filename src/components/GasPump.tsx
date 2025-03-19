@@ -108,7 +108,7 @@ export const GasPump: React.FC = () => {
         </div>
         
         {/* Instructions */}
-        <div className="text-center text-gray-400 text-xs">
+        <div className="text-center text-gray-400 text-xs mb-1">
           {isPumping ? 'RELEASE TO STOP' : 'PRESS & HOLD TO PUMP'}
         </div>
       </div>
