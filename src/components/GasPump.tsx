@@ -18,7 +18,7 @@ export const GasPump: React.FC = () => {
         {/* Gas Station Brand */}
         <div className="text-center mb-4">
           <div className="text-yellow-400 text-xl font-bold">PUMP PERFECTION</div>
-          <div className="text-white text-xs">PREMIUM FUEL</div>
+          <div className="text-white text-xs tracking-wider">PREMIUM FUEL</div>
         </div>
         
         {/* 2D Gas Pump with Digital Display */}
