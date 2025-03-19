@@ -70,7 +70,7 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     return () => {
       if (pumpInterval) clearInterval(pumpInterval);
     };
-  }, []);
+  }, [pumpInterval]);
 
   // Set target amount
   const setTargetAmount = (amount: number) => {
@@ -111,23 +111,17 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Start pumping gas
   const startPumping = () => {
+    if (pumpInterval) return;
+    
     sounds.pump?.play();
     
     setGameState(prev => ({ ...prev, isPumping: true }));
     
     const interval = setInterval(() => {
       setGameState(prev => {
-        // Random amount between 0.05 and 0.2 per tick
-        const increment = Math.random() * 0.15 + 0.05;
+        // Increment by a random amount between 0.1 and 0.5
+        const increment = Math.random() * 0.4 + 0.1;
         const newAmount = parseFloat((prev.currentAmount + increment).toFixed(2));
-        
-        // If we've exceeded the target, end the game
-        if (newAmount > prev.targetAmount) {
-          clearInterval(interval);
-          sounds.splash?.play();
-          endGame(false);
-          return { ...prev, currentAmount: newAmount, isPumping: false, gameOver: true };
-        }
         
         return { ...prev, currentAmount: newAmount };
       });
@@ -152,6 +146,8 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (isExact) {
         newScore = Math.round(prev.currentAmount);
         sounds.success?.play();
+      } else {
+        sounds.fail?.play();
       }
       
       // Update high score if we hit exactly and it's higher than current high score
@@ -209,6 +205,15 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     
     setGameScene('leaderboard');
   };
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (pumpInterval) {
+        clearInterval(pumpInterval);
+      }
+    };
+  }, [pumpInterval]);
 
   return (
     <GameContext.Provider

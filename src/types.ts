@@ -30,6 +30,14 @@ export type AnimationName = 'float' | 'pulse' | 'shake' | 'confetti';
 // Sound types
 export type SoundName = 'pump' | 'success' | 'fail' | 'button' | 'levelup' | 'splash';
 
+// Game sound interface
+export interface GameSound {
+  name: SoundName;
+  path: string;
+  volume?: number;
+  loop?: boolean;
+}
+
 // Game difficulty levels
 export enum DifficultyLevel {
   Easy = 'easy',

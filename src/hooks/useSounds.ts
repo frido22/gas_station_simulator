@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Howl } from 'howler';
-import { GameSound } from '@/types';
 
 // Define sound files
 const SOUND_FILES = {
@@ -49,14 +48,14 @@ export const useSounds = () => {
   }, []);
   
   // Play a sound
-  const playSound = (sound: GameSound) => {
+  const playSound = (sound: string) => {
     if (loaded && sounds[sound]) {
       sounds[sound].play();
     }
   };
   
   // Stop a sound
-  const stopSound = (sound: GameSound) => {
+  const stopSound = (sound: string) => {
     if (loaded && sounds[sound]) {
       sounds[sound].stop();
     }

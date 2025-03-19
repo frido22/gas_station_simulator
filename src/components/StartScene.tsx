@@ -39,7 +39,7 @@ const StartScene: React.FC = () => {
         Stop at EXACTLY the right amount!
       </p>
       
-      <div className="mb-8 p-4 bg-white rounded-lg shadow-md w-full max-w-xs">
+      <div className="mb-8 p-4 bg-gray-100 rounded-lg shadow-md w-full max-w-xs">
         <h2 className="text-lg font-bold mb-2 game-font text-secondary">
           Choose Your Target Amount:
         </h2>
@@ -56,7 +56,7 @@ const StartScene: React.FC = () => {
             type="number"
             value={targetValue}
             onChange={handleTargetChange}
-            className="w-24 h-10 text-center text-2xl font-bold border-y border-gray-300"
+            className="w-24 h-10 text-center text-2xl font-bold border-y border-gray-300 bg-gray-200"
             min="1"
           />
           

@@ -6,8 +6,9 @@ export const useGameAnimations = () => {
   
   // Clean up animations on unmount
   useEffect(() => {
+    const currentAnimations = animationsRef.current;
     return () => {
-      animationsRef.current.forEach(timeline => {
+      currentAnimations.forEach(timeline => {
         if (timeline.isActive()) {
           timeline.kill();
         }
