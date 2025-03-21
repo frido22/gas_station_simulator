@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGame } from '@/context/GameContext';
 import { gsap } from 'gsap';
+import { useSounds } from '@/hooks/useSounds';
 
 const Leaderboard: React.FC = () => {
   const { leaderboard, resetGame } = useGame();
+  const { playSound } = useSounds();
+  const [isLoading, setIsLoading] = useState(true);
   
   // Funny titles for different ranks
   const rankTitles = [
@@ -20,6 +23,9 @@ const Leaderboard: React.FC = () => {
   ];
   
   useEffect(() => {
+    // Play sound when leaderboard loads
+    playSound('levelUp');
+    
     // Animate leaderboard entries
     gsap.from('.leaderboard-title', {
       y: -30,
@@ -42,22 +48,34 @@ const Leaderboard: React.FC = () => {
       duration: 0.5,
       delay: 1
     });
-  }, []);
+    
+    // Set loading to false after a short delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [playSound]);
+  
+  const handlePlayAgain = () => {
+    playSound('button');
+    resetGame();
+  };
   
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full p-6 bg-gradient-to-b from-[#f6f7f8] to-white">
+    <div className="flex flex-col items-center justify-center h-full w-full p-6 bg-gradient-to-b from-gray-800 to-gray-900">
       {/* Leaderboard Title */}
       <div className="leaderboard-title mb-6 text-center">
-        <h1 className="title-font text-4xl mb-2 text-[#011627]">
-          TOP PUMPERS
+        <h1 className="title-font text-4xl mb-2 text-[#2ec4b6]">
+          GLOBAL CHAMPIONS
         </h1>
-        <p className="accent-font text-xl text-[#2ec4b6]">
-          Gas Station Hall of Fame
+        <p className="accent-font text-xl text-[#ff6b35]">
+          Pump Perfection Hall of Fame
         </p>
       </div>
       
       {/* Leaderboard Table */}
-      <div className="w-full max-w-md mb-8 bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="w-full max-w-md mb-8 bg-gray-800 rounded-lg shadow-lg overflow-hidden border-2 border-[#2ec4b6]">
         <div className="bg-[#011627] text-white p-3 flex justify-between game-font">
           <span>Rank</span>
           <span>Name</span>
@@ -65,59 +83,42 @@ const Leaderboard: React.FC = () => {
         </div>
         
         <div className="max-h-80 overflow-y-auto">
-          {leaderboard.length > 0 ? (
+          {isLoading ? (
+            <div className="p-10 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#ff6b35] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+              <p className="mt-4 text-white">Loading global scores...</p>
+            </div>
+          ) : leaderboard.length > 0 ? (
             leaderboard.map((entry, index) => (
               <div 
                 key={index}
-                className="leaderboard-entry flex justify-between items-center p-3 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                className="leaderboard-entry flex justify-between items-center p-3 border-b border-gray-700 hover:bg-gray-700 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span className="game-font text-xl text-[#ff6b35]">#{index + 1}</span>
                   <div>
-                    <div className="font-medium">{entry.name}</div>
-                    <div className="text-xs text-gray-500 accent-font">{rankTitles[index % rankTitles.length]}</div>
+                    <div className="font-medium text-white">{entry.name}</div>
+                    <div className="text-xs text-gray-400 accent-font">{rankTitles[index % rankTitles.length]}</div>
                   </div>
                 </div>
-                <span className="game-font text-xl text-[#2ec4b6]">{entry.score}</span>
+                <span className="game-font text-xl text-[#2ec4b6]">${entry.score}</span>
               </div>
             ))
           ) : (
-            <div className="p-6 text-center text-gray-500">
-              No scores yet! Be the first to make the leaderboard!
+            <div className="p-6 text-center text-gray-400">
+              No scores yet! Be the first to make the global leaderboard!
             </div>
           )}
         </div>
       </div>
       
-      {/* Fun Facts */}
-      <div className="mb-6 text-center max-w-sm">
-        <p className="accent-font text-sm text-gray-600">
-          Did you know? The average person spends 2 weeks of their life at gas stations!
-          <br />
-          (Not a real fact, but sounds plausible)
-        </p>
-      </div>
-      
-      {/* Back Button */}
+      {/* Play Again Button */}
       <button
-        onClick={resetGame}
-        className="back-button pump-button bg-[#ff6b35] text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg hover:bg-[#e85d2e] transition-all game-font"
+        onClick={handlePlayAgain}
+        className="back-button bg-[#ff6b35] text-white px-8 py-3 rounded-full text-xl font-bold shadow-lg hover:bg-opacity-90 transition-colors game-font"
       >
-        BACK TO START
+        PLAY AGAIN
       </button>
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-4 left-4 opacity-50">
-        <div className="text-[#011627] accent-font text-xs -rotate-12">
-          Legends Only!
-        </div>
-      </div>
-      
-      <div className="absolute bottom-4 right-4 opacity-50">
-        <div className="text-[#011627] accent-font text-xs rotate-12">
-          Pump or Perish!
-        </div>
-      </div>
     </div>
   );
 };

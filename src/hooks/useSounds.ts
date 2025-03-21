@@ -7,7 +7,7 @@ const SOUND_FILES = {
   success: '/sounds/success.mp3',
   fail: '/sounds/fail.mp3',
   button: '/sounds/button.mp3',
-  levelUp: '/sounds/levelup.mp3',
+  levelUp: '/sounds/levelup.mp3', // New sound for leaderboard
   countdown: '/sounds/countdown.mp3',
   splash: '/sounds/splash.mp3'
 };

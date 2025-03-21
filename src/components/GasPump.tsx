@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
+import { useSounds } from '@/hooks/useSounds';
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -10,6 +11,25 @@ const formatCurrency = (amount: number) => {
 export const GasPump: React.FC = () => {
   const { gameState, startPumping, stopPumping } = useGame();
   const { isPumping, currentAmount, targetAmount } = gameState;
+  const { playSound, stopSound } = useSounds();
+  
+  // Play pump sound when pumping
+  useEffect(() => {
+    if (isPumping) {
+      playSound('pump');
+    } else {
+      stopSound('pump');
+      
+      // Play success or fail sound when stopping
+      if (currentAmount > 0) {
+        if (Math.abs(currentAmount - targetAmount) < 0.01) {
+          playSound('success');
+        } else if (currentAmount > targetAmount) {
+          playSound('fail');
+        }
+      }
+    }
+  }, [isPumping, currentAmount, targetAmount, playSound, stopSound]);
   
   return (
     <div className="relative w-full h-full flex flex-col items-center">
@@ -103,6 +123,26 @@ export const GasPump: React.FC = () => {
               <div className="bg-[#ff6b35] rounded-full w-8 h-8 flex items-center justify-center text-white text-xs font-bold">93</div>
             </div>
             
+            {/* Main Pump Button - Added inside the pump body */}
+            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex justify-center">
+              <button
+                className="pump-button bg-[#ff6b35] text-white px-6 py-3 rounded-full text-lg font-bold shadow-lg active:shadow-none transition-all game-font border-2 border-[#011627]"
+                onMouseDown={() => {
+                  playSound('button');
+                  startPumping();
+                }}
+                onMouseUp={() => stopPumping()}
+                onMouseLeave={() => isPumping && stopPumping()}
+                onTouchStart={() => {
+                  playSound('button');
+                  startPumping();
+                }}
+                onTouchEnd={() => stopPumping()}
+              >
+                {isPumping ? 'PUMPING!' : 'PUMP GAS'}
+              </button>
+            </div>
+            
             {/* Removed Brand Logo from bottom right */}
           </div>
         </div>
@@ -110,23 +150,6 @@ export const GasPump: React.FC = () => {
         {/* Instructions */}
         <div className="text-center text-gray-400 text-xs mb-1">
           {isPumping ? 'RELEASE TO STOP' : 'PRESS & HOLD TO PUMP'}
-        </div>
-      </div>
-      
-      {/* Pump Controls */}
-      <div className="flex flex-col items-center w-full mt-6">
-        {/* Button controls */}
-        <div className="flex space-x-4">
-          <button
-            className="pump-button bg-[#ff6b35] text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg active:shadow-none transition-all game-font"
-            onMouseDown={() => startPumping()}
-            onMouseUp={() => stopPumping()}
-            onMouseLeave={() => isPumping && stopPumping()}
-            onTouchStart={() => startPumping()}
-            onTouchEnd={() => stopPumping()}
-          >
-            {isPumping ? 'PUMPING!' : 'PUMP GAS'}
-          </button>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { GameState, GameScene, Player } from '@/types';
 import { Howl } from 'howler';
+import { addPlayerToLeaderboard, getLeaderboard } from '@/lib/firebase';
 
 // Define the initial game state
 const initialGameState: GameState = {
@@ -44,17 +45,22 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   // Load high score from local storage
   useEffect(() => {
     const storedHighScore = localStorage.getItem('pumpPerfectionHighScore');
-    const storedLeaderboard = localStorage.getItem('pumpPerfectionLeaderboard');
     
     if (storedHighScore) {
       setGameState(prev => ({ ...prev, highScore: Number(storedHighScore) }));
     }
     
-    if (storedLeaderboard) {
-      setLeaderboard(JSON.parse(storedLeaderboard));
-    }
+    // Fetch leaderboard from Firebase
+    const fetchLeaderboard = async () => {
+      const leaderboardData = await getLeaderboard();
+      setLeaderboard(leaderboardData);
+    };
+    
+    fetchLeaderboard();
+  }, []);
 
-    // Initialize sounds
+  // Initialize sounds
+  useEffect(() => {
     const soundEffects = {
       pump: new Howl({ src: ['/sounds/pump.mp3'], volume: 0.5 }),
       success: new Howl({ src: ['/sounds/success.mp3'], volume: 0.7 }),
@@ -196,14 +202,26 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       score: gameState.score
     };
     
-    const updatedLeaderboard = [...leaderboard, newEntry]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-    
-    setLeaderboard(updatedLeaderboard);
-    localStorage.setItem('pumpPerfectionLeaderboard', JSON.stringify(updatedLeaderboard));
-    
-    setGameScene('leaderboard');
+    // Add to Firebase
+    addPlayerToLeaderboard(newEntry)
+      .then(() => {
+        // Fetch updated leaderboard
+        return getLeaderboard();
+      })
+      .then((updatedLeaderboard) => {
+        setLeaderboard(updatedLeaderboard);
+        setGameScene('leaderboard');
+      })
+      .catch((error) => {
+        console.error('Error updating leaderboard:', error);
+        // Fallback to local if Firebase fails
+        const updatedLeaderboard = [...leaderboard, newEntry]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 10);
+        
+        setLeaderboard(updatedLeaderboard);
+        setGameScene('leaderboard');
+      });
   };
 
   // Clean up on unmount
