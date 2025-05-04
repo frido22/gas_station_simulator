@@ -6,6 +6,9 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    fontFamily: {
+      sans: ['Inter', 'Helvetica Neue', 'sans-serif'],
+    },
     extend: {
       colors: {
         primary: 'var(--primary-color)',

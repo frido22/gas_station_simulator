@@ -28,7 +28,7 @@ export const addPlayerToLeaderboard = async (player: Player): Promise<void> => {
     };
     
     await addDoc(collection(db, 'leaderboard'), playerWithTimestamp);
-    console.log('Player added to leaderboard');
+    // console.log('Player added to leaderboard'); // Removed for production
   } catch (error) {
     console.error('Error adding player to leaderboard:', error);
   }

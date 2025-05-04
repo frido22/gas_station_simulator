@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import { useSounds } from '@/hooks/useSounds';
+import { ArrowLeftIcon } from '@heroicons/react/24/solid'; // Import an icon
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -9,7 +10,7 @@ const formatCurrency = (amount: number) => {
 
 // Gas Pump Component
 export const GasPump: React.FC = () => {
-  const { gameState, startPumping, stopPumping } = useGame();
+  const { gameState, startPumping, stopPumping, setGameScene } = useGame(); // Get setGameScene
   const { isPumping, currentAmount, targetAmount } = gameState;
   const { playSound, stopSound } = useSounds();
   
@@ -33,30 +34,38 @@ export const GasPump: React.FC = () => {
   
   return (
     <div className="relative w-full h-full flex flex-col items-center">
+      {/* Back to Main Menu Button - Top Left */}
+      <button
+        onClick={() => setGameScene('start')}
+        className="absolute top-0 left-0 mt-4 ml-4 z-30 p-2 bg-gray-600 bg-opacity-70 rounded-full shadow-md hover:bg-opacity-100 transition-all text-white"
+        aria-label="Back to Main Menu"
+      >
+        <ArrowLeftIcon className="h-5 w-5" />
+      </button>
+      
       {/* Player Turn Indicator (Multiplayer) - Positioned above the pump */}
       {gameState.mode === 'multi' && (
-        <div className="mb-4 py-1 px-4 bg-secondary rounded-md shadow-md text-center">
+        <div className="mb-4 py-1 px-4 bg-gray-700 rounded-md shadow-md text-center">
           <p className="text-xl font-bold text-white game-font">
             {gameState.players[gameState.currentPlayer]?.name}&apos;s Turn (Round {gameState.currentRound})
           </p>
         </div>
       )}
       
+      {/* Gas Station Brand - Moved Above Pump */}
+      <div className="mb-4 text-center">
+        <div className="text-yellow-400 text-xl font-bold">GAS STATION SIMULATOR</div>
+      </div>
+      
       {/* Gas Pump Display */}
-      <div className="w-full max-w-md bg-gray-800 p-4 rounded-lg shadow-lg border-2 border-gray-700">
-        {/* Gas Station Brand */}
-        <div className="mb-4 text-center">
-          <div className="text-yellow-400 text-xl font-bold">GAS STATION SIMULATOR</div>
-          <div className="text-white text-xs tracking-wider">PREMIUM FUEL</div>
-        </div>
-        
+      <div className="w-full max-w-md bg-gray-700 p-3 rounded-lg shadow-lg border-2 border-gray-600"> 
         {/* 2D Gas Pump with Digital Display */}
         <div className="relative mb-4">
           {/* Gas Pump Frame */}
           <div className="bg-[#2ec4b6] rounded-lg p-6 pb-10 shadow-lg border-4 border-[#011627] relative h-[500px]">
-            {/* Pump Top Section with Branding */}
+            {/* Pump Top Section - Removed Branding */}
             <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-[#2ec4b6] rounded-t-lg border-4 border-b-0 border-[#011627] flex items-center justify-center">
-              <div className="text-[#011627] text-xs font-bold">PUMP PERFECT</div>
+              {/* Removed "PUMP PERFECT" text */}
             </div>
             
             {/* Nozzle Holder (Left) */}

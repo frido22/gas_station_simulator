@@ -35,9 +35,6 @@ export const initializeGame = () => {
     e.preventDefault();
   });
   
-  // Log game initialization
-  console.log('🛢️ Gas Station Simulator initialized!');
-  
   // Return cleanup function
   return () => {
     window.removeEventListener('resize', setVh);
@@ -61,9 +58,6 @@ export const preloadAssets = () => {
     const img = new Image();
     img.src = src;
   });
-  
-  // Log preload completion
-  console.log('🎮 Game assets preloaded!');
 };
 
 // Handle device detection
