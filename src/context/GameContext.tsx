@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { GameState, GameScene, Player } from '@/types';
+import { GameState, GameScene, Player, MultiplayerPlayer } from '@/types';
 import { Howl } from 'howler';
 import { addPlayerToLeaderboard, getLeaderboard } from '@/lib/firebase';
 
@@ -14,6 +14,12 @@ const initialGameState: GameState = {
   gameOver: false,
   success: false,
   level: 1,
+  mode: 'single',
+  players: [],
+  targets: [],
+  currentPlayer: 0,
+  currentRound: 1,
+  roundsPerPlayer: 3,
 };
 
 // Define the context type
@@ -22,7 +28,7 @@ interface GameContextType {
   gameScene: GameScene;
   leaderboard: Player[];
   sounds: {[key: string]: Howl};
-  startGame: () => void;
+  startGame: (names?: string[]) => void;
   resetGame: () => void;
   startPumping: () => void;
   stopPumping: () => void;
@@ -86,16 +92,37 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   };
 
   // Start the game
-  const startGame = () => {
+  const startGame = (names?: string[]) => {
     sounds.button?.play();
     
-    setGameState({
-      ...initialGameState,
-      isPlaying: true,
-      targetAmount: gameState.targetAmount || 20, // Use existing target or default to 20
-      level: gameState.level,
-      highScore: gameState.highScore,
-    });
+    if (names && names.length > 1) {
+      // Multiplayer mode
+      const players: MultiplayerPlayer[] = names.map(n => ({ name: n, totalError: 0 }));
+      const rounds = initialGameState.roundsPerPlayer;
+      const targets = players.map(() =>
+        Array.from({ length: rounds }, () => (Math.floor(Math.random() * 8) + 1) * 5)
+      ); // 5–40 step 5
+      setGameState({
+        ...initialGameState,
+        isPlaying: true,
+        mode: 'multi',
+        players,
+        targets,
+        targetAmount: targets[0][0],
+        currentPlayer: 0,
+        currentRound: 1,
+        roundsPerPlayer: rounds,
+        highScore: gameState.highScore,
+      });
+    } else {
+      // Single player
+      setGameState({
+        ...initialGameState,
+        isPlaying: true,
+        targetAmount: gameState.targetAmount || 20,
+        highScore: gameState.highScore,
+      });
+    }
     
     setGameScene('game');
   };
@@ -144,32 +171,47 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
     
     setGameState(prev => {
-      // Check if we hit the exact target amount (must be exactly equal)
-      const isExact = prev.targetAmount === prev.currentAmount;
-      
-      // Calculate score - it's just the amount if exact, otherwise 0
-      let newScore = 0;
-      if (isExact) {
-        newScore = Math.round(prev.currentAmount);
-        sounds.success?.play();
+      if (prev.mode === 'multi') {
+        // Multiplayer turn logic
+        const error = Math.abs(prev.currentAmount - prev.targetAmount);
+        const players = prev.players.map((p, idx) =>
+          idx === prev.currentPlayer
+            ? { ...p, totalError: p.totalError + error }
+            : p
+        );
+        let nextPlayer = prev.currentPlayer + 1;
+        let nextRound = prev.currentRound;
+        if (nextPlayer >= players.length) {
+          nextPlayer = 0;
+          nextRound++;
+        }
+        const isGameOver = nextRound > prev.roundsPerPlayer;
+        const nextTarget = isGameOver ? prev.targetAmount : prev.targets[nextPlayer][nextRound - 1];
+        setGameScene(isGameOver ? 'multiplayerSummary' : 'multiplayerResult');
+        return {
+          ...prev,
+          isPumping: false,
+          currentAmount: 0,
+          players,
+          currentPlayer: nextPlayer,
+          currentRound: nextRound,
+          targetAmount: nextTarget,
+          gameOver: isGameOver,
+        };
       } else {
-        sounds.fail?.play();
+        // Single player end
+        const isExact = prev.targetAmount === prev.currentAmount;
+        if (isExact) sounds.success?.play(); else sounds.fail?.play();
+        endGame(isExact);
+        return {
+          ...prev,
+          isPumping: false,
+          gameOver: true,
+          success: isExact,
+          score: isExact ? Math.round(prev.currentAmount) : 0,
+          highScore: isExact && prev.currentAmount > prev.highScore ? Math.round(prev.currentAmount) : prev.highScore,
+        };
       }
-      
-      // Update high score if we hit exactly and it's higher than current high score
-      const isHighScore = isExact && newScore > prev.highScore;
-      
-      // End game based on whether we hit exactly
-      endGame(isExact);
-      
-      return { 
-        ...prev, 
-        isPumping: false, 
-        gameOver: true, 
-        success: isExact,
-        score: newScore,
-        highScore: isHighScore ? newScore : prev.highScore
-      };
     });
   };
 

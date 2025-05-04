@@ -6,6 +6,8 @@ import SuccessScene from './SuccessScene';
 import FailScene from './FailScene';
 import Leaderboard from './Leaderboard';
 import SoundController from './SoundController';
+import MultiplayerResult from './MultiplayerResult';
+import MultiplayerSummary from './MultiplayerSummary';
 import GameBackground from './GameBackground';
 import { initializeGame, preloadAssets } from '@/utils/gameInitializer';
 
@@ -54,6 +56,10 @@ const Game: React.FC = () => {
         return <FailScene />;
       case 'leaderboard':
         return <Leaderboard />;
+      case 'multiplayerResult':
+        return <MultiplayerResult />;
+      case 'multiplayerSummary':
+        return <MultiplayerSummary />;
       default:
         return <StartScene />;
     }

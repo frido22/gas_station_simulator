@@ -33,6 +33,12 @@ export const GasPump: React.FC = () => {
   
   return (
     <div className="relative w-full h-full flex flex-col items-center">
+      {/* Show current player in multiplayer mode */}
+      {gameState.mode === 'multi' && (
+        <div className="text-black text-xl font-bold absolute top-4 left-4">
+          Player {gameState.currentPlayer + 1}'s Turn
+        </div>
+      )}
       {/* Gas Pump Display */}
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-lg shadow-lg border-2 border-gray-700">
         {/* Gas Station Brand */}

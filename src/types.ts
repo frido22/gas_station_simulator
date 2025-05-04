@@ -3,7 +3,20 @@
  */
 
 // Game scene types
-export type GameScene = 'start' | 'game' | 'success' | 'fail' | 'leaderboard';
+export type GameScene =
+  | 'start'
+  | 'game'
+  | 'success'
+  | 'fail'
+  | 'leaderboard'
+  | 'multiplayerResult'
+  | 'multiplayerSummary';
+
+// Multiplayer participant interface
+export interface MultiplayerPlayer {
+  name: string;
+  totalError: number;
+}
 
 // Game state interface
 export interface GameState {
@@ -16,6 +29,12 @@ export interface GameState {
   gameOver: boolean;
   success: boolean;
   level: number;
+  mode: 'single' | 'multi';
+  players: MultiplayerPlayer[];
+  targets: number[][];
+  currentPlayer: number;
+  currentRound: number;
+  roundsPerPlayer: number;
 }
 
 // Player interface for leaderboard
