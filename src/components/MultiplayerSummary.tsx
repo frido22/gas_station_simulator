@@ -6,7 +6,7 @@ const MultiplayerSummary: React.FC = () => {
   const sortedPlayers = [...gameState.players].sort((a, b) => a.totalError - b.totalError);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full text-center p-6 bg-white text-black">
+    <div className="flex flex-col items-center justify-start h-full w-full text-center p-6 pt-12 bg-white/80 backdrop-blur-sm text-black rounded-lg">
       <h2 className="text-3xl font-bold mb-4 game-font text-black">Match Summary</h2>
       <h3 className="text-2xl mb-4 text-black font-bold">
         Winner: {sortedPlayers[0]?.name || 'N/A'} with lowest error!

@@ -87,7 +87,7 @@ const StartScene: React.FC = () => {
       </div>
 
       {mode === 'single' ? (
-        <div className="mb-8 p-4 bg-gray-100 rounded-lg shadow-md w-full max-w-xs">
+        <div className="mb-8 p-4 bg-white/60 backdrop-blur-sm rounded-lg w-full max-w-xs">
           <h2 className="text-lg font-bold mb-2 game-font text-black">
             Choose Your Target Amount:
           </h2>
@@ -121,7 +121,7 @@ const StartScene: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="mb-8 p-4 bg-gray-100 rounded-lg shadow-md w-full max-w-xs">
+        <div className="mb-8 p-4 bg-white/60 backdrop-blur-sm rounded-lg w-full max-w-xs">
           <h2 className="text-lg font-bold mb-2 game-font text-black">
             Number of Players:
           </h2>

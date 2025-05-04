@@ -63,7 +63,7 @@ const Leaderboard: React.FC = () => {
   };
   
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full p-6 bg-gradient-to-b from-gray-800 to-gray-900">
+    <div className="flex flex-col items-center justify-start h-full w-full p-6 pt-12 bg-gradient-to-b from-gray-900/80 to-gray-950/90 backdrop-blur-sm">
       {/* Leaderboard Title */}
       <div className="leaderboard-title mb-6 text-center">
         <h1 className="title-font text-4xl mb-2 text-[#2ec4b6]">
@@ -75,7 +75,7 @@ const Leaderboard: React.FC = () => {
       </div>
       
       {/* Leaderboard Table */}
-      <div className="w-full max-w-md mb-8 bg-gray-800 rounded-lg shadow-lg overflow-hidden border-2 border-[#2ec4b6]">
+      <div className="w-full max-w-md mb-8 bg-gray-800/80 backdrop-blur-sm rounded-lg overflow-hidden border-2 border-[#2ec4b6]">
         <div className="bg-[#011627] text-white p-3 flex justify-between game-font">
           <span>Rank</span>
           <span>Name</span>

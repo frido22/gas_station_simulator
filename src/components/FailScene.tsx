@@ -33,7 +33,7 @@ const FailScene: React.FC = () => {
   
   return (
     <div className="flex flex-col items-center justify-center h-full w-full text-center p-6">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg max-w-md w-full">
         <h1 className="text-3xl font-bold mb-4 text-red-500 game-font">
           {isOverflow ? 'OVERFLOW!' : 'MISSED IT!'}
         </h1>

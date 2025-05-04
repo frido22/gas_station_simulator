@@ -23,7 +23,7 @@ const MultiplayerResult: React.FC = () => {
   const nextPlayerName = players[currentPlayer]?.name || 'Next Player';
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full text-center p-6 bg-white text-black">
+    <div className="flex flex-col items-center justify-start w-full text-center p-6 pt-12 bg-white/80 backdrop-blur-sm text-black rounded-lg"> 
       {/* Display results for the player who just finished */}
       <h2 className="text-3xl font-bold mb-4 game-font text-black">
         Results for {playerName}
