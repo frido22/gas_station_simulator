@@ -70,7 +70,7 @@ const Leaderboard: React.FC = () => {
           GLOBAL CHAMPIONS
         </h1>
         <p className="accent-font text-xl text-[#ff6b35]">
-          Pump Perfection Hall of Fame
+          Gas Station Simulator Hall of Fame
         </p>
       </div>
       

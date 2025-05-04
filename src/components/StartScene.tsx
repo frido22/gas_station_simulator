@@ -5,7 +5,7 @@ import { useSounds } from '@/hooks/useSounds';
 const StartScene: React.FC = () => {
   const { startGame, gameState, setTargetAmount, setGameScene } = useGame();
   const { playSound } = useSounds();
-  const [targetValue, setTargetValue] = useState(gameState.targetAmount || 20);
+  const [targetValue, setTargetValue] = useState(Math.max(5, gameState.targetAmount || 5));
   const [mode, setMode] = useState<'single' | 'multi'>('single');
   const [numPlayers, setNumPlayers] = useState(2);
   const [playerNames, setPlayerNames] = useState<string[]>(
@@ -42,15 +42,19 @@ const StartScene: React.FC = () => {
 
   const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    if (!isNaN(value) && value > 0) {
+    if (!isNaN(value) && value >= 5) {
       setTargetValue(value);
       setTargetAmount(value);
+    } else if (!isNaN(value) && value < 5) {
+      setTargetValue(5);
+      setTargetAmount(5);
     }
   };
 
   const adjustTarget = (amount: number) => {
-    const newValue = targetValue + amount;
-    if (newValue > 0) {
+    const step = 5;
+    const newValue = targetValue + amount * step;
+    if (newValue >= 5) {
       setTargetValue(newValue);
       setTargetAmount(newValue);
       playSound('button');
@@ -60,7 +64,7 @@ const StartScene: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-full text-center">
       <h1 className="text-5xl font-bold mb-4 text-black title-font animate-float">
-        Pump Perfection
+        Gas Station Simulator
       </h1>
 
       <p className="text-xl mb-8 accent-font text-black">
@@ -101,7 +105,7 @@ const StartScene: React.FC = () => {
               value={targetValue}
               onChange={handleTargetChange}
               className="w-24 h-10 text-center text-2xl font-bold border-y border-gray-300 bg-gray-200 text-black"
-              min="1"
+              min="5"
             />
 
             <button

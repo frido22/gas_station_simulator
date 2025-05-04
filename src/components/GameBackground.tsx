@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { GameScene } from '../types';
 
 interface GameBackgroundProps {
-  scene: 'start' | 'game' | 'success' | 'fail' | 'leaderboard';
+  scene: GameScene;
 }
 
 const GameBackground: React.FC<GameBackgroundProps> = ({ scene }) => {

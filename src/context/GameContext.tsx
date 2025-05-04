@@ -1,6 +1,6 @@
+"use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { GameState, GameScene, Player, MultiplayerPlayer } from '@/types';
-import { Howl } from 'howler';
 import { addPlayerToLeaderboard, getLeaderboard } from '@/lib/firebase';
 
 // Define the initial game state
@@ -20,6 +20,7 @@ const initialGameState: GameState = {
   currentPlayer: 0,
   currentRound: 1,
   roundsPerPlayer: 3,
+  lastTurnResult: undefined,
 };
 
 // Define the context type
@@ -27,7 +28,6 @@ interface GameContextType {
   gameState: GameState;
   gameScene: GameScene;
   leaderboard: Player[];
-  sounds: {[key: string]: Howl};
   startGame: (names?: string[]) => void;
   resetGame: () => void;
   startPumping: () => void;
@@ -45,7 +45,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [gameScene, setGameScene] = useState<GameScene>('start');
   const [leaderboard, setLeaderboard] = useState<Player[]>([]);
-  const [sounds, setSounds] = useState<{[key: string]: Howl}>({});
   const [pumpInterval, setPumpInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Load high score from local storage
@@ -65,25 +64,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     fetchLeaderboard();
   }, []);
 
-  // Initialize sounds
-  useEffect(() => {
-    const soundEffects = {
-      pump: new Howl({ src: ['/sounds/pump.mp3'], volume: 0.5 }),
-      success: new Howl({ src: ['/sounds/success.mp3'], volume: 0.7 }),
-      fail: new Howl({ src: ['/sounds/fail.mp3'], volume: 0.7 }),
-      button: new Howl({ src: ['/sounds/button.mp3'], volume: 0.5 }),
-      levelUp: new Howl({ src: ['/sounds/levelup.mp3'], volume: 0.7 }),
-      splash: new Howl({ src: ['/sounds/splash.mp3'], volume: 0.7 }),
-    };
-    
-    setSounds(soundEffects);
-
-    // Cleanup
-    return () => {
-      if (pumpInterval) clearInterval(pumpInterval);
-    };
-  }, [pumpInterval]);
-
   // Set target amount
   const setTargetAmount = (amount: number) => {
     // Ensure amount is a round number
@@ -93,8 +73,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Start the game
   const startGame = (names?: string[]) => {
-    sounds.button?.play();
-    
     if (names && names.length > 1) {
       // Multiplayer mode
       const players: MultiplayerPlayer[] = names.map(n => ({ name: n, totalError: 0 }));
@@ -129,8 +107,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Reset the game
   const resetGame = () => {
-    sounds.button?.play();
-    
     if (pumpInterval) clearInterval(pumpInterval);
     
     setGameState({
@@ -145,8 +121,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   // Start pumping gas
   const startPumping = () => {
     if (pumpInterval) return;
-    
-    sounds.pump?.play();
     
     setGameState(prev => ({ ...prev, isPumping: true }));
     
@@ -170,10 +144,17 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       setPumpInterval(null);
     }
     
+    const finalPumpedAmount = gameState.currentAmount; // Capture amount before reset
+    
     setGameState(prev => {
       if (prev.mode === 'multi') {
         // Multiplayer turn logic
-        const error = Math.abs(prev.currentAmount - prev.targetAmount);
+        const targetPlayed = prev.targetAmount; // Target for the turn just completed
+        const error = Math.abs(finalPumpedAmount - targetPlayed);
+        const playerIndex = prev.currentPlayer;
+        const playerName = prev.players[playerIndex]?.name || 'Player';
+        const roundPlayed = prev.currentRound;
+        
         const players = prev.players.map((p, idx) =>
           idx === prev.currentPlayer
             ? { ...p, totalError: p.totalError + error }
@@ -188,6 +169,16 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         const isGameOver = nextRound > prev.roundsPerPlayer;
         const nextTarget = isGameOver ? prev.targetAmount : prev.targets[nextPlayer][nextRound - 1];
         setGameScene(isGameOver ? 'multiplayerSummary' : 'multiplayerResult');
+        
+        // Store results of the completed turn
+        const lastTurnResult = {
+          playerName: playerName,
+          targetAmount: targetPlayed,
+          amountPumped: finalPumpedAmount,
+          error: error,
+          roundPlayed: roundPlayed,
+        };
+        
         return {
           ...prev,
           isPumping: false,
@@ -197,11 +188,11 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           currentRound: nextRound,
           targetAmount: nextTarget,
           gameOver: isGameOver,
+          lastTurnResult: lastTurnResult,
         };
       } else {
         // Single player end
         const isExact = prev.targetAmount === prev.currentAmount;
-        if (isExact) sounds.success?.play(); else sounds.fail?.play();
         endGame(isExact);
         return {
           ...prev,
@@ -218,7 +209,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   // End the game
   const endGame = (success: boolean) => {
     if (success) {
-      sounds.success?.play();
       setGameScene('success');
       
       // Update high score in local storage if we hit exactly and it's higher
@@ -232,7 +222,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         level: prev.level + 1
       }));
     } else {
-      sounds.fail?.play();
       setGameScene('fail');
     }
   };
@@ -281,7 +270,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         gameState,
         gameScene,
         leaderboard,
-        sounds,
         startGame,
         resetGame,
         startPumping,

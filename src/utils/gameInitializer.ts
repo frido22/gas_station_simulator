@@ -1,6 +1,6 @@
 /**
  * Game Initializer
- * Handles initial setup tasks for the Pump Perfection game
+ * Handles initial setup tasks for the Gas Station Simulator game
  */
 
 // Check if we're in the browser environment
@@ -36,7 +36,7 @@ export const initializeGame = () => {
   });
   
   // Log game initialization
-  console.log('🛢️ Pump Perfection initialized!');
+  console.log('🛢️ Gas Station Simulator initialized!');
   
   // Return cleanup function
   return () => {

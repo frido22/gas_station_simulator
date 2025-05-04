@@ -1,5 +1,5 @@
 /**
- * Type definitions for the Pump Perfection gas station simulator game
+ * Type definitions for the Gas Station Simulator gas station simulator game
  */
 
 // Game scene types
@@ -15,7 +15,7 @@ export type GameScene =
 // Multiplayer participant interface
 export interface MultiplayerPlayer {
   name: string;
-  totalError: number;
+  totalError: number; // Cumulative error across all rounds
 }
 
 // Game state interface
@@ -35,6 +35,13 @@ export interface GameState {
   currentPlayer: number;
   currentRound: number;
   roundsPerPlayer: number;
+  lastTurnResult?: { // Optional: Stores details of the last completed multiplayer turn
+    playerName: string;
+    targetAmount: number;
+    amountPumped: number;
+    error: number;
+    roundPlayed: number;
+  };
 }
 
 // Player interface for leaderboard

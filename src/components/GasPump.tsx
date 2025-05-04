@@ -37,7 +37,7 @@ export const GasPump: React.FC = () => {
       {gameState.mode === 'multi' && (
         <div className="mb-4 py-1 px-4 bg-secondary rounded-md shadow-md text-center">
           <p className="text-xl font-bold text-white game-font">
-            {gameState.players[gameState.currentPlayer]?.name}'s Turn (Round {gameState.currentRound})
+            {gameState.players[gameState.currentPlayer]?.name}&apos;s Turn (Round {gameState.currentRound})
           </p>
         </div>
       )}
@@ -45,8 +45,8 @@ export const GasPump: React.FC = () => {
       {/* Gas Pump Display */}
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-lg shadow-lg border-2 border-gray-700">
         {/* Gas Station Brand */}
-        <div className="text-center mb-4">
-          <div className="text-yellow-400 text-xl font-bold">PUMP PERFECTION</div>
+        <div className="mb-4 text-center">
+          <div className="text-yellow-400 text-xl font-bold">GAS STATION SIMULATOR</div>
           <div className="text-white text-xs tracking-wider">PREMIUM FUEL</div>
         </div>
         

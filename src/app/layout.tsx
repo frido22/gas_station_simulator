@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { GameProvider } from "@/context/GameContext";
 
 export const metadata: Metadata = {
-  title: "Pump Perfection - Gas Station Simulator",
+  title: "Gas Station Simulator",
   description: "A humorous mobile-web game where players must precisely stop filling their gas tank at an exact dollar amount",
 };
 
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="overflow-hidden">
-        {children}
+        <GameProvider>
+          {children}
+        </GameProvider>
       </body>
     </html>
   );
