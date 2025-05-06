@@ -193,14 +193,20 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       } else {
         // Single player end
         const isExact = prev.targetAmount === prev.currentAmount;
+        const newScore = isExact ? Math.round(prev.currentAmount) : 0;
+        const newHighScore = isExact && prev.currentAmount > prev.highScore ? Math.round(prev.currentAmount) : prev.highScore;
+        // Persist high score immediately when it is beaten
+        if (newHighScore > prev.highScore) {
+          localStorage.setItem('pumpPerfectionHighScore', newHighScore.toString());
+        }
         endGame(isExact);
         return {
           ...prev,
           isPumping: false,
           gameOver: true,
           success: isExact,
-          score: isExact ? Math.round(prev.currentAmount) : 0,
-          highScore: isExact && prev.currentAmount > prev.highScore ? Math.round(prev.currentAmount) : prev.highScore,
+          score: newScore,
+          highScore: newHighScore,
         };
       }
     });
@@ -210,11 +216,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const endGame = (success: boolean) => {
     if (success) {
       setGameScene('success');
-      
-      // Update high score in local storage if we hit exactly and it's higher
-      if (gameState.score > gameState.highScore) {
-        localStorage.setItem('pumpPerfectionHighScore', gameState.score.toString());
-      }
       
       // Level up for next round
       setGameState(prev => ({ 
@@ -228,9 +229,11 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Add player to leaderboard
   const addToLeaderboard = (name: string) => {
+    // Use latest score, fallback to currentAmount if score not yet propagated
+    const effectiveScore = gameState.score > 0 ? gameState.score : Math.round(gameState.currentAmount);
     const newEntry: Player = {
       name: name || 'Anonymous',
-      score: gameState.score
+      score: effectiveScore,
     };
     
     // Add to Firebase
