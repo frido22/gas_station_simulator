@@ -5,7 +5,6 @@ import StartScene from './StartScene';
 import GasPump from './GasPump';
 import SuccessScene from './SuccessScene';
 import FailScene from './FailScene';
-import Leaderboard from './Leaderboard';
 import MultiplayerResult from './MultiplayerResult';
 import MultiplayerSummary from './MultiplayerSummary';
 import GameBackground from './GameBackground';
@@ -55,8 +54,6 @@ const Game: React.FC = () => {
         return <SuccessScene />;
       case 'fail':
         return <FailScene />;
-      case 'leaderboard':
-        return <Leaderboard />;
       case 'multiplayerResult':
         return <MultiplayerResult />;
       case 'multiplayerSummary':
