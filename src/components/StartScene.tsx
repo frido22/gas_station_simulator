@@ -3,7 +3,7 @@ import { useGame } from '@/context/GameContext';
 import { useSounds } from '@/hooks/useSounds';
 
 const StartScene: React.FC = () => {
-  const { startGame, gameState, setTargetAmount, setGameScene } = useGame();
+  const { startGame, gameState, setTargetAmount } = useGame();
   const { playSound } = useSounds();
   const [targetValue, setTargetValue] = useState(Math.max(5, gameState.targetAmount || 5));
   const [mode, setMode] = useState<'single' | 'multi'>('single');

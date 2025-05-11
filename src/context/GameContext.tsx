@@ -1,7 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { GameState, GameScene, Player, MultiplayerPlayer } from '@/types';
-import { addPlayerToLeaderboard, getLeaderboard } from '@/lib/firebase';
+import { GameState, GameScene, MultiplayerPlayer } from '@/types';
 
 // Define the initial game state
 const initialGameState: GameState = {
@@ -27,13 +26,11 @@ const initialGameState: GameState = {
 interface GameContextType {
   gameState: GameState;
   gameScene: GameScene;
-  leaderboard: Player[];
   startGame: (names?: string[]) => void;
   resetGame: () => void;
   startPumping: () => void;
   stopPumping: () => void;
   setGameScene: (scene: GameScene) => void;
-  addToLeaderboard: (name: string) => void;
   setTargetAmount: (amount: number) => void;
 }
 
@@ -44,7 +41,6 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [gameScene, setGameScene] = useState<GameScene>('start');
-  const [leaderboard, setLeaderboard] = useState<Player[]>([]);
   const [pumpInterval, setPumpInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Load high score from local storage
@@ -54,14 +50,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     if (storedHighScore) {
       setGameState(prev => ({ ...prev, highScore: Number(storedHighScore) }));
     }
-    
-    // Fetch leaderboard from Firebase
-    const fetchLeaderboard = async () => {
-      const leaderboardData = await getLeaderboard();
-      setLeaderboard(leaderboardData);
-    };
-    
-    fetchLeaderboard();
   }, []);
 
   // Set target amount
@@ -227,37 +215,6 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
-  // Add player to leaderboard
-  const addToLeaderboard = (name: string) => {
-    // Use latest score, fallback to currentAmount if score not yet propagated
-    const effectiveScore = gameState.score > 0 ? gameState.score : Math.round(gameState.currentAmount);
-    const newEntry: Player = {
-      name: name || 'Anonymous',
-      score: effectiveScore,
-    };
-    
-    // Add to Firebase
-    addPlayerToLeaderboard(newEntry)
-      .then(() => {
-        // Fetch updated leaderboard
-        return getLeaderboard();
-      })
-      .then((updatedLeaderboard) => {
-        setLeaderboard(updatedLeaderboard);
-        setGameScene('leaderboard');
-      })
-      .catch((error) => {
-        console.error('Error updating leaderboard:', error);
-        // Fallback to local if Firebase fails
-        const updatedLeaderboard = [...leaderboard, newEntry]
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 10);
-        
-        setLeaderboard(updatedLeaderboard);
-        setGameScene('leaderboard');
-      });
-  };
-
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -272,13 +229,11 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       value={{
         gameState,
         gameScene,
-        leaderboard,
         startGame,
         resetGame,
         startPumping,
         stopPumping,
         setGameScene,
-        addToLeaderboard,
         setTargetAmount,
       }}
     >

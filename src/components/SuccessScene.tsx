@@ -4,9 +4,8 @@ import { SuccessMessages } from '@/types';
 import { useSounds } from '@/hooks/useSounds';
 
 const SuccessScene: React.FC = () => {
-  const { gameState, resetGame, setGameScene, addToLeaderboard } = useGame();
+  const { gameState, resetGame } = useGame();
   const { playSound } = useSounds();
-  const [playerName, setPlayerName] = useState('');
   const [message, setMessage] = useState('');
   
   useEffect(() => {
@@ -19,18 +18,6 @@ const SuccessScene: React.FC = () => {
     
     // Confetti animation would be triggered here
   }, [playSound]);
-  
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlayerName(e.target.value);
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    playSound('button');
-    
-    // Add player to leaderboard with their name
-    addToLeaderboard(playerName);
-  };
   
   const handlePlayAgain = () => {
     playSound('button');
@@ -57,46 +44,12 @@ const SuccessScene: React.FC = () => {
           {message}
         </p>
         
-        <form onSubmit={handleSubmit} className="mb-6">
-          <div className="mb-4">
-            <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 mb-1">
-              Enter your name for the leaderboard:
-            </label>
-            <input
-              type="text"
-              id="playerName"
-              value={playerName}
-              onChange={handleNameChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-              placeholder="Your name"
-              maxLength={15}
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-colors game-font"
-          >
-            SAVE SCORE
-          </button>
-        </form>
-        
-        <div className="flex space-x-4">
+        <div className="flex justify-center">
           <button
             onClick={handlePlayAgain}
             className="flex-1 bg-secondary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-colors game-font"
           >
             PLAY AGAIN
-          </button>
-          
-          <button
-            onClick={() => {
-              playSound('button');
-              setGameScene('leaderboard');
-            }}
-            className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-colors game-font"
-          >
-            LEADERBOARD
           </button>
         </div>
       </div>

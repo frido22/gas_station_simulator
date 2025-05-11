@@ -12,7 +12,6 @@
     "@heroicons/react": "^2.2.0",
     "@react-three/drei": "^10.0.4",
     "@react-three/fiber": "^9.1.0",
-    "firebase": "^11.5.0",
     "gsap": "^3.12.7",
     "howler": "^2.2.4",
     "next": "^15.2.4",
