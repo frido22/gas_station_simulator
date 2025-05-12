@@ -120,7 +120,7 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         
         return { ...prev, currentAmount: newAmount };
       });
-    }, 100);
+    }, 200); // Changed from 100 to 150
     
     setPumpInterval(interval);
   };
