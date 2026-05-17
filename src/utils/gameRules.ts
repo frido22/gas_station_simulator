@@ -9,11 +9,6 @@ export const getPumpError = (amount: number, target: number) =>
 export const isPerfectStop = (amount: number, target: number) =>
   getPumpError(amount, target) <= PERFECT_TOLERANCE;
 
-export const getTargetProgress = (amount: number, target: number) => {
-  if (target <= 0) return 0;
-  return Math.min((amount / target) * 100, 120);
-};
-
 export const getPrecisionLabel = (amount: number, target: number) => {
   const error = getPumpError(amount, target);
 

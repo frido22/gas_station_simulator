@@ -46,6 +46,8 @@ button {
 .game-shell {
   min-height: 100vh;
   min-height: calc(var(--vh, 1vh) * 100);
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(180deg, #97c7df 0%, #f4c17a 46%, #ffe7bd 100%);
 }
@@ -129,10 +131,6 @@ button {
   animation: display-flicker 4s ease-in-out infinite;
 }
 
-.proximity-track {
-  background: linear-gradient(90deg, #087f5b 0%, #f6c343 62%, #d92d20 100%);
-}
-
 .nozzle-hose {
   border-left: 8px solid #171717;
   border-bottom: 8px solid #171717;
@@ -202,10 +200,5 @@ button {
 @media (max-width: 760px) {
   body {
     font-size: 15px;
-  }
-
-  .game-shell {
-    overflow-x: hidden;
-    overflow-y: auto;
   }
 }
