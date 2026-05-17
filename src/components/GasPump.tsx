@@ -1,176 +1,198 @@
 import React, { useEffect } from 'react';
+import { ArrowLeftIcon, BoltIcon, FireIcon } from '@heroicons/react/24/solid';
 import { useGame } from '@/context/GameContext';
 import { useSounds } from '@/hooks/useSounds';
-import { ArrowLeftIcon } from '@heroicons/react/24/solid'; // Import an icon
+import {
+  formatCurrency,
+  GAS_PRICE_PER_GALLON,
+  getPrecisionLabel,
+  getPumpError,
+  getTargetProgress,
+  isPerfectStop,
+} from '@/utils/gameRules';
 
-// Helper function to format currency
-const formatCurrency = (amount: number) => {
-  return amount.toFixed(2);
-};
-
-// Gas Pump Component
 export const GasPump: React.FC = () => {
-  const { gameState, startPumping, stopPumping, setGameScene } = useGame(); // Get setGameScene
+  const { gameState, startPumping, stopPumping, setGameScene } = useGame();
   const { isPumping, currentAmount, targetAmount } = gameState;
   const { playSound, stopSound } = useSounds();
-  
-  // Play pump sound when pumping
+  const progress = getTargetProgress(currentAmount, targetAmount);
+  const clampedProgress = Math.min(progress, 100);
+  const pumpError = getPumpError(currentAmount, targetAmount);
+  const statusLabel = getPrecisionLabel(currentAmount, targetAmount);
+  const gallons = currentAmount / GAS_PRICE_PER_GALLON;
+  const isInPerfectZone = isPerfectStop(currentAmount, targetAmount);
+
   useEffect(() => {
     if (isPumping) {
       playSound('pump');
     } else {
       stopSound('pump');
-      
-      // Play success or fail sound when stopping
-      if (currentAmount > 0) {
-        if (Math.abs(currentAmount - targetAmount) < 0.01) {
-          playSound('success');
-        } else if (currentAmount > targetAmount) {
-          playSound('fail');
-        }
-      }
     }
-  }, [isPumping, currentAmount, targetAmount, playSound, stopSound]);
-  
+  }, [isPumping, playSound, stopSound]);
+
+  const handlePumpStart = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    playSound('button');
+    startPumping();
+  };
+
+  const handlePumpStop = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    stopPumping();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if ((event.key === ' ' || event.key === 'Enter') && !isPumping) {
+      event.preventDefault();
+      playSound('button');
+      startPumping();
+    }
+  };
+
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if ((event.key === ' ' || event.key === 'Enter') && isPumping) {
+      event.preventDefault();
+      stopPumping();
+    }
+  };
+
   return (
-    <div className="relative w-full h-full flex flex-col items-center">
-      {/* Back to Main Menu Button - Top Left */}
-      <button
-        onClick={() => setGameScene('start')}
-        className="absolute top-0 left-0 mt-4 ml-4 z-30 p-2 bg-gray-600 bg-opacity-70 rounded-full shadow-md hover:bg-opacity-100 transition-all text-white"
-        aria-label="Back to Main Menu"
-      >
-        <ArrowLeftIcon className="h-5 w-5" />
-      </button>
-      
-      {/* Player Turn Indicator (Multiplayer) - Positioned above the pump */}
-      {gameState.mode === 'multi' && (
-        <div className="mb-4 py-1 px-4 bg-gray-700 rounded-md shadow-md text-center">
-          <p className="text-xl font-bold text-white game-font">
-            {gameState.players[gameState.currentPlayer]?.name}&apos;s Turn (Round {gameState.currentRound})
-          </p>
+    <section className="grid w-full items-center gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(340px,1.1fr)]">
+      <div className="scene-panel order-2 rounded-[8px] p-4 lg:order-1">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <button
+            onClick={() => setGameScene('start')}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-950 text-white transition hover:bg-neutral-800"
+            aria-label="Back to main menu"
+            title="Back to main menu"
+            type="button"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+
+          {gameState.mode === 'multi' ? (
+            <div className="min-w-0 rounded-full bg-[#087f5b] px-4 py-2 text-right text-sm font-black text-white">
+              <span className="block truncate">{gameState.players[gameState.currentPlayer]?.name || 'Player'}</span>
+              <span className="block text-xs text-white/75">Round {gameState.currentRound}/{gameState.roundsPerPlayer}</span>
+            </div>
+          ) : (
+            <div className="rounded-full bg-[#087f5b] px-4 py-2 text-sm font-black text-white">
+              Solo Run
+            </div>
+          )}
         </div>
-      )}
-      
-      {/* Gas Station Brand - Moved Above Pump */}
-      <div className="mb-4 text-center">
-        <div className="text-yellow-400 text-xl font-bold">GAS STATION SIMULATOR</div>
-      </div>
-      
-      {/* Gas Pump Display */}
-      <div className="w-full max-w-md bg-gray-700 p-3 rounded-lg shadow-lg border-2 border-gray-600"> 
-        {/* 2D Gas Pump with Digital Display */}
-        <div className="relative mb-4">
-          {/* Gas Pump Frame */}
-          <div className="bg-[#2ec4b6] rounded-lg p-6 pb-10 shadow-lg border-4 border-[#011627] relative h-[500px]">
-            {/* Pump Top Section - Removed Branding */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-[#2ec4b6] rounded-t-lg border-4 border-b-0 border-[#011627] flex items-center justify-center">
-              {/* Removed "PUMP PERFECT" text */}
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="control-surface rounded-[8px] p-4">
+            <div className="text-xs font-black uppercase text-neutral-500">Target</div>
+            <div className="mt-1 text-4xl font-black leading-none">{formatCurrency(targetAmount)}</div>
+          </div>
+
+          <div className="control-surface rounded-[8px] p-4">
+            <div className="text-xs font-black uppercase text-neutral-500">Current</div>
+            <div className={`mt-1 text-4xl font-black leading-none ${currentAmount > targetAmount ? 'text-[#d92d20]' : 'text-neutral-950'}`}>
+              {formatCurrency(currentAmount)}
             </div>
-            
-            {/* Nozzle Holder (Left) */}
-            <div className="absolute -left-6 top-1/3 w-6 h-16 bg-[#011627] rounded-l-lg"></div>
-            
-            {/* Nozzle */}
-            <div className="absolute -left-20 top-1/3 w-14 h-8 bg-[#ff6b35] rounded-lg transform rotate-12">
-              <div className="absolute top-1/2 right-0 w-10 h-3 bg-black rounded-full transform -translate-y-1/2"></div>
-            </div>
-            
-            {/* Hose */}
-            <div className="absolute -left-12 top-1/3 w-6 h-24 border-l-4 border-dashed border-black transform -rotate-12"></div>
-            
-            {/* Digital Display */}
-            <div className="bg-black p-3 rounded-lg border-2 border-gray-700 mb-3">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-gray-400 text-sm">TARGET:</div>
-                <div className="font-mono bg-gray-900 px-2 py-1 rounded">
-                  <span className="text-yellow-400 text-xl tracking-wider">
-                    {formatCurrency(targetAmount)}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Current Amount - LED Display */}
-              <div className="bg-gray-900 p-2 rounded mb-2 border border-gray-700">
-                <div className="flex justify-between">
-                  <div className="text-gray-400 text-xs">GALLONS</div>
-                  <div className="text-gray-400 text-xs">PRICE</div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="font-mono text-green-500 text-2xl tracking-widest led-display">
-                    {(currentAmount / 3).toFixed(3)}
-                  </div>
-                  <div className="font-mono text-green-500 text-3xl tracking-widest font-bold led-display">
-                    ${formatCurrency(currentAmount)}
-                  </div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <div className="text-gray-400 text-xs">PRICE/GAL</div>
-                  <div className="text-gray-400 text-xs font-mono">$3.000</div>
-                </div>
-              </div>
-              
-              {/* Status Indicators */}
-              <div className="flex justify-between text-xs">
-                <div className={`${isPumping ? 'text-green-500' : 'text-gray-600'}`}>
-                  {isPumping ? '● PUMPING' : '○ READY'}
-                </div>
-                <div className="text-gray-400">
-                  REGULAR UNLEADED
-                </div>
-              </div>
-            </div>
-            
-            {/* Control Panel - Removed number pad */}
-            <div className="h-10 mb-2 flex items-center justify-center">
-              <div className="w-3/4 h-2 bg-gray-700 rounded"></div>
-            </div>
-            
-            {/* Credit Card Reader */}
-            <div className="bg-gray-900 h-8 rounded-md border border-gray-700 mb-2 flex items-center justify-center">
-              <div className="w-3/4 h-1 bg-gray-700"></div>
-            </div>
-            
-            {/* Side Decorations */}
-            <div className="absolute -right-3 top-1/4 bottom-1/4 w-3 bg-[#ff6b35] rounded-r-lg"></div>
-            
-            {/* Pump Buttons */}
-            <div className="flex justify-between mb-2">
-              <div className="bg-[#ff6b35] rounded-full w-8 h-8 flex items-center justify-center text-white text-xs font-bold">87</div>
-              <div className="bg-[#ff6b35] rounded-full w-8 h-8 flex items-center justify-center text-white text-xs font-bold">89</div>
-              <div className="bg-[#ff6b35] rounded-full w-8 h-8 flex items-center justify-center text-white text-xs font-bold">93</div>
-            </div>
-            
-            {/* Main Pump Button - Added inside the pump body */}
-            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex justify-center">
-              <button
-                className="pump-button bg-[#ff6b35] text-white px-6 py-3 rounded-full text-lg font-bold shadow-lg active:shadow-none transition-all game-font border-2 border-[#011627]"
-                onMouseDown={() => {
-                  playSound('button');
-                  startPumping();
-                }}
-                onMouseUp={() => stopPumping()}
-                onMouseLeave={() => isPumping && stopPumping()}
-                onTouchStart={() => {
-                  playSound('button');
-                  startPumping();
-                }}
-                onTouchEnd={() => stopPumping()}
-              >
-                {isPumping ? 'PUMPING!' : 'PUMP GAS'}
-              </button>
-            </div>
-            
-            {/* Removed Brand Logo from bottom right */}
           </div>
         </div>
-        
-        {/* Instructions */}
-        <div className="text-center text-gray-400 text-xs mb-1">
-          {isPumping ? 'RELEASE TO STOP' : 'PRESS & HOLD TO PUMP'}
+
+        <div className="mt-4 rounded-[8px] bg-neutral-950 p-4 text-white">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="text-sm font-black">{statusLabel}</span>
+            <span className={`rounded-full px-3 py-1 text-xs font-black ${isInPerfectZone ? 'bg-[#52ff9d] text-neutral-950' : 'bg-white/12 text-white'}`}>
+              {pumpError.toFixed(2)} off
+            </span>
+          </div>
+
+          <div className="relative h-4 overflow-hidden rounded-full bg-white/14">
+            <div className="proximity-track absolute inset-y-0 left-0 rounded-full" style={{ width: `${clampedProgress}%` }} />
+            <div className="absolute inset-y-[-4px] left-[calc(100%-3px)] w-[6px] rounded-full bg-white shadow" />
+          </div>
+
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-bold text-white/70">
+            <span>Start</span>
+            <span>Perfect</span>
+            <span>Overflow</span>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="order-1 mt-8 lg:order-2 lg:mt-0">
+        <div className="pump-cabinet relative mx-auto w-full max-w-[430px] rounded-[8px] border border-black/20 p-4 pt-7">
+          <div className="absolute -top-8 left-1/2 flex h-10 w-48 -translate-x-1/2 items-center justify-center rounded-t-[8px] bg-[#d92d20] text-sm font-black uppercase text-white shadow-md">
+            Fuel Shift
+          </div>
+
+          <div className="absolute -left-7 top-28 hidden h-32 w-12 rounded-l-[8px] bg-neutral-950 sm:block" />
+          <div className="nozzle-hose absolute -left-14 top-48 hidden h-40 w-24 sm:block" />
+          <div className="absolute -left-20 top-32 hidden h-11 w-24 rotate-[-10deg] rounded-[8px] bg-[#d92d20] shadow-lg sm:block">
+            <div className="absolute right-[-18px] top-4 h-3 w-9 rounded-full bg-neutral-950" />
+          </div>
+
+          <div className="meter-screen rounded-[8px] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 text-xs font-black uppercase text-white/54">
+              <span>Regular unleaded</span>
+              <span>{isPumping ? 'Pumping' : 'Ready'}</span>
+            </div>
+
+            <div className="grid grid-cols-[0.8fr_1.2fr] gap-3">
+              <div className="rounded-[6px] bg-white/8 p-3">
+                <div className="text-xs font-bold uppercase text-white/45">Gallons</div>
+                <div className="led-display mt-2 text-2xl font-black">{gallons.toFixed(3)}</div>
+              </div>
+              <div className="rounded-[6px] bg-white/8 p-3 text-right">
+                <div className="text-xs font-bold uppercase text-white/45">Sale</div>
+                <div className="led-display mt-2 text-4xl font-black">{formatCurrency(currentAmount)}</div>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs font-bold text-white/54">
+              <span>Price/Gal {formatCurrency(GAS_PRICE_PER_GALLON)}</span>
+              <span className="text-right">Goal {formatCurrency(targetAmount)}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {[87, 89, 93].map((grade) => (
+              <div key={grade} className="rounded-[8px] border border-black/10 bg-white/70 p-3 text-center shadow-sm">
+                <div className="mx-auto mb-1 grid h-8 w-8 place-items-center rounded-full bg-[#f6c343] text-xs font-black">
+                  {grade}
+                </div>
+                <div className="text-[10px] font-black uppercase text-neutral-500">Octane</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-[8px] bg-neutral-950 p-3">
+            <div className="flex items-center justify-between gap-3 text-xs font-bold uppercase text-white/60">
+              <span>Card reader</span>
+              <span>Approved</span>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-white/16" />
+          </div>
+
+          <button
+            className={`primary-button mt-5 flex min-h-20 w-full touch-none items-center justify-center gap-3 rounded-[8px] px-5 text-xl font-black uppercase text-white ${
+              isPumping ? 'bg-[#087f5b]' : 'bg-[#d92d20]'
+            }`}
+            onPointerDown={handlePumpStart}
+            onPointerUp={handlePumpStop}
+            onPointerCancel={handlePumpStop}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            aria-pressed={isPumping}
+            type="button"
+          >
+            {isPumping ? <FireIcon className="h-6 w-6" /> : <BoltIcon className="h-6 w-6" />}
+            {isPumping ? 'Release to stop' : 'Hold to pump'}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 };
 

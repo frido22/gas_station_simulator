@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useEffect } from 'react';
+import { SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/solid';
 import { useGame } from '@/context/GameContext';
 import { useSounds } from '@/hooks/useSounds';
 import StartScene from './StartScene';
@@ -14,36 +17,29 @@ const Game: React.FC = () => {
   const { gameScene } = useGame();
   const { muted, toggleMute } = useSounds();
 
-  // Initialize game
   useEffect(() => {
-    // Initialize game and get cleanup function
     const cleanup = initializeGame();
-    
-    // Preload assets
     preloadAssets();
-    
-    // Return cleanup function
+
     return cleanup;
   }, []);
-  
-  // Handle mobile viewport height issues
+
   useEffect(() => {
     const setVh = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    
+
     setVh();
     window.addEventListener('resize', setVh);
     window.addEventListener('orientationchange', setVh);
-    
+
     return () => {
       window.removeEventListener('resize', setVh);
       window.removeEventListener('orientationchange', setVh);
     };
   }, []);
-  
-  // Render the appropriate scene based on game state
+
   const renderScene = () => {
     switch (gameScene) {
       case 'start':
@@ -62,43 +58,36 @@ const Game: React.FC = () => {
         return <StartScene />;
     }
   };
-  
+
   return (
-    <div 
-      className="w-full h-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#f6f7f8] to-white overflow-hidden"
-      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-    >
-      {/* Background animations */}
+    <main className="game-shell relative flex min-h-screen w-full overflow-hidden text-neutral-950">
       <GameBackground scene={gameScene} />
-      
-      {/* Mute Button */}
-      <button
-        onClick={toggleMute}
-        className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center bg-white bg-opacity-70 rounded-full shadow-md hover:bg-opacity-100 transition-all"
-        aria-label={muted ? "Unmute sounds" : "Mute sounds"}
-      >
-        {muted ? (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-          </svg>
-        )}
-      </button>
-      
-      {/* Main content */}
-      <div className="relative z-10 w-full max-w-md h-full flex flex-col items-center justify-center p-4">
-        {renderScene()}
+
+      <header className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6">
+        <div className="rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-black uppercase shadow-sm backdrop-blur-md">
+          Gas Station Simulator
+        </div>
+
+        <button
+          onClick={toggleMute}
+          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/80 text-neutral-900 shadow-sm backdrop-blur-md transition hover:bg-white"
+          aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
+          title={muted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {muted ? (
+            <SpeakerXMarkIcon className="h-5 w-5" />
+          ) : (
+            <SpeakerWaveIcon className="h-5 w-5" />
+          )}
+        </button>
+      </header>
+
+      <div className="relative z-10 flex min-h-screen w-full items-center justify-center px-4 pb-6 pt-20 sm:px-6">
+        <div className="flex w-full max-w-5xl items-center justify-center">
+          {renderScene()}
+        </div>
       </div>
-      
-      {/* Footer */}
-      <footer className="w-full bg-gray-800 text-center p-2 absolute bottom-0 left-0">
-        <p className="text-xs text-gray-400">Gas Station Simulator &copy; 2025 | The Ultimate Gas Station Simulator</p>
-      </footer>
-    </div>
+    </main>
   );
 };
 

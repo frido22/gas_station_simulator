@@ -1,84 +1,83 @@
 import React, { useEffect, useState } from 'react';
+import { ArrowPathIcon, HomeIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useGame } from '@/context/GameContext';
 import { FailMessages } from '@/types';
 import { useSounds } from '@/hooks/useSounds';
+import { formatCurrency, getPumpError } from '@/utils/gameRules';
 
 const FailScene: React.FC = () => {
   const { gameState, resetGame, startGame } = useGame();
   const { playSound } = useSounds();
   const [message, setMessage] = useState('');
-  
+
   useEffect(() => {
-    // Select a random fail message
     const randomMessage = FailMessages[Math.floor(Math.random() * FailMessages.length)];
     setMessage(randomMessage);
-    
-    // Play fail sound
     playSound('fail');
   }, [playSound]);
-  
+
   const handleTryAgain = () => {
     playSound('button');
     startGame();
   };
-  
+
   const handleRestart = () => {
     playSound('button');
     resetGame();
   };
-  
-  // Calculate how close they were to the target
-  const difference = Math.abs(gameState.targetAmount - gameState.currentAmount).toFixed(2);
+
+  const difference = getPumpError(gameState.currentAmount, gameState.targetAmount);
   const isOverflow = gameState.currentAmount > gameState.targetAmount;
-  
+
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full text-center p-6">
-      <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-4 text-red-500 game-font">
-          {isOverflow ? 'OVERFLOW!' : 'MISSED IT!'}
-        </h1>
-        
-        <div className="mb-6">
-          <div className="text-5xl font-bold text-gray-700 mb-2">
-            ${gameState.currentAmount.toFixed(2)}
-          </div>
-          <p className="text-gray-600">
-            Target: ${gameState.targetAmount.toFixed(2)}
-          </p>
-          <p className="text-red-500 mt-2">
-            {isOverflow 
-              ? `You overflowed by $${difference}!` 
-              : `You were $${difference} away from the target!`}
-          </p>
-        </div>
-        
-        <p className="text-lg mb-6 accent-font text-dark">
-          {message}
-        </p>
-        
-        <div className="flex flex-col space-y-4">
-          <button
-            onClick={handleTryAgain}
-            className="w-full bg-primary text-white py-3 px-4 rounded-md hover:bg-opacity-90 transition-colors game-font"
-          >
-            TRY AGAIN (SAME TARGET)
-          </button>
-          
-          <button
-            onClick={handleRestart}
-            className="w-full bg-secondary text-white py-3 px-4 rounded-md hover:bg-opacity-90 transition-colors game-font"
-          >
-            BACK TO START
-          </button>
-        </div>
-        
-        {gameState.highScore > 0 && (
-          <p className="mt-6 text-gray-700">
-            Your highest exact amount: <span className="font-bold text-primary">${gameState.highScore}.00</span>
-          </p>
-        )}
+    <section className="scene-panel w-full max-w-2xl rounded-[8px] p-5 text-center sm:p-7">
+      <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-[#d92d20] text-white shadow-lg">
+        <XCircleIcon className="h-10 w-10" />
       </div>
-    </div>
+
+      <h1 className="text-4xl font-black leading-none text-neutral-950 sm:text-5xl">
+        {isOverflow ? 'Over Target' : 'Missed Target'}
+      </h1>
+
+      <p className="mx-auto mt-3 max-w-md text-base font-semibold text-neutral-700">
+        {message}
+      </p>
+
+      <div className="my-6 grid gap-3 text-left sm:grid-cols-3">
+        <div className="control-surface rounded-[8px] p-4">
+          <div className="text-xs font-black uppercase text-neutral-500">Stopped at</div>
+          <div className="mt-1 text-2xl font-black">{formatCurrency(gameState.currentAmount)}</div>
+        </div>
+        <div className="control-surface rounded-[8px] p-4">
+          <div className="text-xs font-black uppercase text-neutral-500">Target</div>
+          <div className="mt-1 text-2xl font-black">{formatCurrency(gameState.targetAmount)}</div>
+        </div>
+        <div className="control-surface rounded-[8px] p-4">
+          <div className="text-xs font-black uppercase text-neutral-500">{isOverflow ? 'Over by' : 'Short by'}</div>
+          <div className="mt-1 text-2xl font-black text-[#d92d20]">{formatCurrency(difference)}</div>
+        </div>
+      </div>
+
+      <div className="mx-auto grid max-w-sm gap-3">
+        <button
+          onClick={handleTryAgain}
+          className="primary-button flex min-h-14 items-center justify-center gap-2 rounded-[8px] bg-[#d92d20] px-5 text-base font-black uppercase text-white"
+          type="button"
+        >
+          <ArrowPathIcon className="h-5 w-5" />
+          Try Same Target
+        </button>
+
+        <button
+          onClick={handleRestart}
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[8px] border border-black/15 bg-white/72 px-5 text-base font-black uppercase text-neutral-950 transition hover:bg-white"
+          type="button"
+        >
+          <HomeIcon className="h-5 w-5" />
+          Main Menu
+        </button>
+      </div>
+    </section>
   );
 };
 

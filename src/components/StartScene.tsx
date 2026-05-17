@@ -1,11 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  MinusIcon,
+  PlayIcon,
+  PlusIcon,
+  TrophyIcon,
+  UserIcon,
+  UsersIcon,
+} from '@heroicons/react/24/solid';
 import { useGame } from '@/context/GameContext';
 import { useSounds } from '@/hooks/useSounds';
+import { formatCurrency, PERFECT_TOLERANCE } from '@/utils/gameRules';
+
+const MIN_TARGET = 5;
+const MAX_TARGET = 100;
+
+const clampTarget = (value: number) => Math.min(MAX_TARGET, Math.max(MIN_TARGET, value));
 
 const StartScene: React.FC = () => {
   const { startGame, gameState, setTargetAmount } = useGame();
   const { playSound } = useSounds();
-  const [targetValue, setTargetValue] = useState(Math.max(5, gameState.targetAmount || 5));
+  const [targetValue, setTargetValue] = useState(Math.max(MIN_TARGET, gameState.targetAmount || MIN_TARGET));
   const [mode, setMode] = useState<'single' | 'multi'>('single');
   const [numPlayers, setNumPlayers] = useState(2);
   const [playerNames, setPlayerNames] = useState<string[]>(
@@ -26,10 +40,17 @@ const StartScene: React.FC = () => {
     });
   }, [numPlayers]);
 
+  const updateTarget = (value: number) => {
+    const clampedValue = clampTarget(Math.round(value / 5) * 5);
+    setTargetValue(clampedValue);
+    setTargetAmount(clampedValue);
+  };
+
   const handleStartGame = () => {
     playSound('button');
     if (mode === 'multi') {
-      startGame(playerNames);
+      const names = playerNames.map((name, index) => name.trim() || `Player ${index + 1}`);
+      startGame(names);
     } else {
       startGame();
     }
@@ -37,132 +58,189 @@ const StartScene: React.FC = () => {
 
   const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    if (!isNaN(value) && value >= 5) {
-      setTargetValue(value);
-      setTargetAmount(value);
-    } else if (!isNaN(value) && value < 5) {
-      setTargetValue(5);
-      setTargetAmount(5);
+    if (!Number.isNaN(value)) {
+      updateTarget(value);
     }
   };
 
   const adjustTarget = (amount: number) => {
-    const step = 5;
-    const newValue = targetValue + amount * step;
-    if (newValue >= 5) {
-      setTargetValue(newValue);
-      setTargetAmount(newValue);
-      playSound('button');
-    }
+    updateTarget(targetValue + amount * 5);
+    playSound('button');
+  };
+
+  const adjustPlayers = (amount: number) => {
+    setNumPlayers(prev => Math.min(6, Math.max(2, prev + amount)));
+    playSound('button');
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full text-center">
-      <h1 className="text-5xl font-bold mb-4 text-black title-font animate-float">
-        Gas Station Simulator
-      </h1>
+    <section className="grid w-full items-center gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="scene-panel rounded-[8px] p-5 sm:p-7">
+        <div className="mb-5 inline-flex items-center rounded-full bg-[#d92d20] px-3 py-1 text-xs font-black uppercase text-white shadow-sm">
+          Precision pump challenge
+        </div>
 
-      <p className="text-xl mb-8 accent-font text-black">
-        Stop at EXACTLY the right amount!
-      </p>
+        <h1 className="max-w-xl text-4xl font-black leading-none text-neutral-950 sm:text-6xl">
+          Nail the meter before it runs past the target.
+        </h1>
 
-      <div className="mb-8 flex space-x-4">
-        <button
-          onClick={() => setMode('single')}
-          className={`py-2 px-4 rounded ${mode === 'single' ? 'bg-primary text-white' : 'bg-gray-200 text-black'}`}
-        >
-          Single Player
-        </button>
-        <button
-          onClick={() => setMode('multi')}
-          className={`py-2 px-4 rounded ${mode === 'multi' ? 'bg-primary text-white' : 'bg-gray-200 text-black'}`}
-        >
-          Multiplayer
-        </button>
+        <p className="mt-4 max-w-lg text-base font-semibold text-neutral-700 sm:text-lg">
+          Pick a dollar goal, hold the pump, and release inside the {formatCurrency(PERFECT_TOLERANCE)} perfect zone.
+        </p>
+
+        <div className="mt-6 grid grid-cols-3 gap-3 text-left">
+          <div className="control-surface rounded-[8px] p-3">
+            <div className="text-xs font-bold uppercase text-neutral-500">Target</div>
+            <div className="mt-1 text-2xl font-black">{formatCurrency(targetValue)}</div>
+          </div>
+          <div className="control-surface rounded-[8px] p-3">
+            <div className="text-xs font-bold uppercase text-neutral-500">Mode</div>
+            <div className="mt-1 text-2xl font-black">{mode === 'single' ? 'Solo' : 'Party'}</div>
+          </div>
+          <div className="control-surface rounded-[8px] p-3">
+            <div className="text-xs font-bold uppercase text-neutral-500">Best</div>
+            <div className="mt-1 text-2xl font-black">{gameState.highScore ? formatCurrency(gameState.highScore) : '--'}</div>
+          </div>
+        </div>
       </div>
 
-      {mode === 'single' ? (
-        <div className="mb-8 p-4 bg-white/60 backdrop-blur-sm rounded-lg w-full max-w-xs">
-          <h2 className="text-lg font-bold mb-2 game-font text-black">
-            Choose Your Target Amount:
-          </h2>
-
-          <div className="flex items-center justify-center mb-4">
-            <button
-              className="w-10 h-10 bg-primary text-white rounded-l-lg font-bold text-xl"
-              onClick={() => adjustTarget(-1)}
-            >
-              -
-            </button>
-
-            <input
-              type="number"
-              value={targetValue}
-              onChange={handleTargetChange}
-              className="w-24 h-10 text-center text-2xl font-bold border-y border-gray-300 bg-gray-200 text-black"
-              min="5"
-            />
-
-            <button
-              className="w-10 h-10 bg-primary text-white rounded-r-lg font-bold text-xl"
-              onClick={() => adjustTarget(1)}
-            >
-              +
-            </button>
-          </div>
-
-          <p className="text-sm text-black italic">
-            Try to stop pumping at exactly ${targetValue}.00
-          </p>
-        </div>
-      ) : (
-        <div className="mb-8 p-4 bg-white/60 backdrop-blur-sm rounded-lg w-full max-w-xs">
-          <h2 className="text-lg font-bold mb-2 game-font text-black">
-            Number of Players:
-          </h2>
-
-          <input
-            type="number"
-            min="2"
-            max="9"
-            value={numPlayers}
-            onChange={e => {
-              const val = parseInt(e.target.value, 10);
-              if (val >= 2 && val <= 9) setNumPlayers(val);
+      <div className="scene-panel rounded-[8px] p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-2 rounded-[8px] bg-neutral-900 p-1">
+          <button
+            onClick={() => {
+              setMode('single');
+              playSound('button');
             }}
-            className="w-16 h-10 text-center text-xl border border-gray-300 rounded mb-4 text-black"
-          />
-
-          {playerNames.map((name, i) => (
-            <input
-              key={i}
-              type="text"
-              value={name}
-              onChange={e => {
-                const namesCopy = [...playerNames];
-                namesCopy[i] = e.target.value;
-                setPlayerNames(namesCopy);
-              }}
-              placeholder={`Player ${i + 1}`}
-              className="w-full h-10 text-center text-lg border border-gray-300 bg-gray-200 rounded mb-2 text-black placeholder-gray-500"
-            />
-          ))}
+            className={`mode-button flex min-h-11 items-center justify-center gap-2 rounded-[6px] px-3 text-sm font-black ${
+              mode === 'single' ? 'bg-white text-neutral-950 shadow-sm' : 'text-white/78 hover:bg-white/10'
+            }`}
+            type="button"
+          >
+            <UserIcon className="h-4 w-4" />
+            Solo
+          </button>
+          <button
+            onClick={() => {
+              setMode('multi');
+              playSound('button');
+            }}
+            className={`mode-button flex min-h-11 items-center justify-center gap-2 rounded-[6px] px-3 text-sm font-black ${
+              mode === 'multi' ? 'bg-white text-neutral-950 shadow-sm' : 'text-white/78 hover:bg-white/10'
+            }`}
+            type="button"
+          >
+            <UsersIcon className="h-4 w-4" />
+            Multiplayer
+          </button>
         </div>
-      )}
 
-      <button
-        onClick={handleStartGame}
-        className="pump-button bg-primary hover:bg-opacity-90 text-black font-bold py-4 px-8 rounded-full text-xl game-font transition-all"
-      >
-        {mode === 'single' ? 'START PUMPING!' : 'START MULTIPLAYER'}
-      </button>
+        {mode === 'single' ? (
+          <div className="mt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <label htmlFor="target-amount" className="text-sm font-black uppercase text-neutral-600">
+                Target amount
+              </label>
+              <span className="rounded-full bg-[#087f5b]/12 px-3 py-1 text-xs font-black text-[#076348]">
+                {MIN_TARGET}-{MAX_TARGET}
+              </span>
+            </div>
 
-      {gameState.highScore > 0 && (
-        <p className="mt-4 text-black">
-          Your highest exact amount: <span className="font-bold text-primary">${gameState.highScore}.00</span>
-        </p>
-      )}
-    </div>
+            <div className="flex items-stretch overflow-hidden rounded-[8px] border border-black/10 bg-white">
+              <button
+                className="flex w-14 items-center justify-center bg-neutral-950 text-white transition hover:bg-neutral-800 disabled:bg-neutral-300"
+                onClick={() => adjustTarget(-1)}
+                disabled={targetValue <= MIN_TARGET}
+                aria-label="Decrease target"
+                type="button"
+              >
+                <MinusIcon className="h-5 w-5" />
+              </button>
+
+              <input
+                id="target-amount"
+                type="number"
+                value={targetValue}
+                onChange={handleTargetChange}
+                className="h-16 min-w-0 flex-1 border-0 bg-white text-center text-3xl font-black text-neutral-950 outline-none"
+                min={MIN_TARGET}
+                max={MAX_TARGET}
+                step={5}
+              />
+
+              <button
+                className="flex w-14 items-center justify-center bg-neutral-950 text-white transition hover:bg-neutral-800 disabled:bg-neutral-300"
+                onClick={() => adjustTarget(1)}
+                disabled={targetValue >= MAX_TARGET}
+                aria-label="Increase target"
+                type="button"
+              >
+                <PlusIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-black uppercase text-neutral-600">Players</span>
+              <div className="flex overflow-hidden rounded-full border border-black/10 bg-white">
+                <button
+                  className="flex h-9 w-10 items-center justify-center transition hover:bg-neutral-100 disabled:text-neutral-300"
+                  onClick={() => adjustPlayers(-1)}
+                  disabled={numPlayers <= 2}
+                  aria-label="Remove player"
+                  type="button"
+                >
+                  <MinusIcon className="h-4 w-4" />
+                </button>
+                <span className="grid h-9 w-10 place-items-center text-sm font-black">{numPlayers}</span>
+                <button
+                  className="flex h-9 w-10 items-center justify-center transition hover:bg-neutral-100 disabled:text-neutral-300"
+                  onClick={() => adjustPlayers(1)}
+                  disabled={numPlayers >= 6}
+                  aria-label="Add player"
+                  type="button"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid max-h-[34vh] gap-2 overflow-y-auto pr-1">
+              {playerNames.map((name, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  value={name}
+                  onChange={e => {
+                    const namesCopy = [...playerNames];
+                    namesCopy[i] = e.target.value;
+                    setPlayerNames(namesCopy);
+                  }}
+                  placeholder={`Player ${i + 1}`}
+                  className="h-12 rounded-[8px] border border-black/10 bg-white px-3 text-base font-bold text-neutral-950 outline-none placeholder:text-neutral-400 focus:border-[#087f5b]"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleStartGame}
+          className="primary-button mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-[8px] bg-[#d92d20] px-5 text-base font-black uppercase text-white"
+          type="button"
+        >
+          <PlayIcon className="h-5 w-5" />
+          {mode === 'single' ? 'Start Pumping' : 'Start Match'}
+        </button>
+
+        {gameState.highScore > 0 && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm font-bold text-neutral-700">
+            <TrophyIcon className="h-4 w-4 text-[#f6c343]" />
+            Highest perfect target: {formatCurrency(gameState.highScore)}
+          </div>
+        )}
+      </div>
+    </section>
   );
 };
 

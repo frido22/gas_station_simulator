@@ -1,333 +1,99 @@
-import React, { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import React from 'react';
 import { GameScene } from '../types';
 
 interface GameBackgroundProps {
   scene: GameScene;
 }
 
+const clouds = [
+  { top: '10%', width: '150px', left: '-18%', opacity: '0.56' },
+  { top: '18%', width: '220px', left: '-45%', opacity: '0.42' },
+  { top: '7%', width: '110px', left: '-70%', opacity: '0.46' },
+];
+
+const confetti = Array.from({ length: 28 }, (_, index) => ({
+  left: `${(index * 11) % 100}%`,
+  width: index % 3 === 0 ? '8px' : '6px',
+  height: index % 2 === 0 ? '14px' : '10px',
+  background: ['#d92d20', '#087f5b', '#f6c343', '#ffffff'][index % 4],
+  animationDelay: `${-(index % 9) * 0.22}s`,
+}));
+
 const GameBackground: React.FC<GameBackgroundProps> = ({ scene }) => {
-  const backgroundRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (!backgroundRef.current) return;
-    
-    // Clear any existing elements
-    while (backgroundRef.current.firstChild) {
-      backgroundRef.current.removeChild(backgroundRef.current.firstChild);
-    }
-    
-    // Create background elements based on scene
-    switch (scene) {
-      case 'start':
-        createStartBackground();
-        break;
-      case 'game':
-        createGameBackground();
-        break;
-      case 'success':
-        createSuccessBackground();
-        break;
-      case 'fail':
-        createFailBackground();
-        break;
-      case 'leaderboard':
-        createLeaderboardBackground();
-        break;
-    }
-  }, [scene]);
-  
-  // Create background for start scene
-  const createStartBackground = () => {
-    if (!backgroundRef.current) return;
-    
-    // Create clouds
-    for (let i = 0; i < 5; i++) {
-      const cloud = document.createElement('div');
-      cloud.className = 'absolute rounded-full bg-white opacity-30';
-      cloud.style.width = `${Math.random() * 100 + 50}px`;
-      cloud.style.height = `${Math.random() * 60 + 30}px`;
-      cloud.style.top = `${Math.random() * 50}%`;
-      cloud.style.left = `${Math.random() * 100}%`;
-      backgroundRef.current.appendChild(cloud);
-      
-      // Animate cloud
-      gsap.to(cloud, {
-        x: '+=100',
-        duration: Math.random() * 30 + 20,
-        repeat: -1,
-        ease: 'none'
-      });
-    }
-    
-    // Create road
-    const road = document.createElement('div');
-    road.className = 'absolute bottom-0 left-0 w-full h-[15vh] bg-[#333] opacity-20';
-    backgroundRef.current.appendChild(road);
-    
-    // Create road markings
-    for (let i = 0; i < 5; i++) {
-      const marking = document.createElement('div');
-      marking.className = 'absolute bg-white opacity-50';
-      marking.style.width = '50px';
-      marking.style.height = '8px';
-      marking.style.bottom = '7vh';
-      marking.style.left = `${i * 25}%`;
-      backgroundRef.current.appendChild(marking);
-      
-      // Animate marking
-      gsap.to(marking, {
-        x: '+=100vw',
-        duration: 10,
-        repeat: -1,
-        ease: 'none'
-      });
-    }
-  };
-  
-  // Create background for game scene
-  const createGameBackground = () => {
-    if (!backgroundRef.current) return;
-    
-    // Create gas station building
-    const building = document.createElement('div');
-    building.className = 'absolute bg-[#2ec4b6] opacity-10 rounded-t-lg';
-    building.style.width = '200px';
-    building.style.height = '100px';
-    building.style.bottom = '15vh';
-    building.style.right = '10%';
-    backgroundRef.current.appendChild(building);
-    
-    // Create gas station sign
-    const sign = document.createElement('div');
-    sign.className = 'absolute bg-[#ff6b35] opacity-20 rounded';
-    sign.style.width = '80px';
-    sign.style.height = '60px';
-    sign.style.bottom = '25vh';
-    sign.style.right = '15%';
-    backgroundRef.current.appendChild(sign);
-    
-    // Create road
-    const road = document.createElement('div');
-    road.className = 'absolute bottom-0 left-0 w-full h-[15vh] bg-[#333] opacity-10';
-    backgroundRef.current.appendChild(road);
-    
-    // Create random cars passing by
-    const createCar = () => {
-      const car = document.createElement('div');
-      car.className = 'absolute bg-opacity-20 rounded';
-      car.style.width = '60px';
-      car.style.height = '30px';
-      car.style.bottom = '5vh';
-      car.style.left = '-60px';
-      
-      // Random car color
-      const colors = ['#ff6b35', '#2ec4b6', '#fdca40', '#011627'];
-      car.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      
-      backgroundRef.current?.appendChild(car);
-      
-      // Animate car
-      gsap.to(car, {
-        x: window.innerWidth + 100,
-        duration: Math.random() * 5 + 5,
-        ease: 'power1.inOut',
-        onComplete: () => {
-          if (backgroundRef.current?.contains(car)) {
-            backgroundRef.current.removeChild(car);
-          }
-        }
-      });
-      
-      // Schedule next car
-      setTimeout(createCar, Math.random() * 5000 + 3000);
-    };
-    
-    createCar();
-  };
-  
-  // Create background for success scene
-  const createSuccessBackground = () => {
-    if (!backgroundRef.current) return;
-    
-    // Create confetti
-    for (let i = 0; i < 50; i++) {
-      const confetti = document.createElement('div');
-      confetti.className = 'absolute rounded-sm';
-      
-      // Random confetti color
-      const colors = ['#ff6b35', '#2ec4b6', '#fdca40', '#ffffff'];
-      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      
-      confetti.style.width = `${Math.random() * 10 + 5}px`;
-      confetti.style.height = `${Math.random() * 10 + 5}px`;
-      confetti.style.top = '-20px';
-      confetti.style.left = `${Math.random() * 100}%`;
-      confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-      backgroundRef.current.appendChild(confetti);
-      
-      // Animate confetti
-      gsap.to(confetti, {
-        y: window.innerHeight + 100,
-        x: `+=${Math.random() * 100 - 50}`,
-        rotation: `+=${Math.random() * 360}`,
-        duration: Math.random() * 3 + 2,
-        ease: 'power1.inOut',
-        delay: Math.random() * 2,
-        onComplete: () => {
-          if (backgroundRef.current?.contains(confetti)) {
-            backgroundRef.current.removeChild(confetti);
-          }
-        }
-      });
-    }
-    
-    // Create success glow
-    const glow = document.createElement('div');
-    glow.className = 'absolute rounded-full bg-[#2ec4b6] opacity-10';
-    glow.style.width = '300px';
-    glow.style.height = '300px';
-    glow.style.top = '50%';
-    glow.style.left = '50%';
-    glow.style.transform = 'translate(-50%, -50%)';
-    backgroundRef.current.appendChild(glow);
-    
-    // Animate glow
-    gsap.to(glow, {
-      scale: 1.5,
-      opacity: 0.05,
-      duration: 2,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    });
-  };
-  
-  // Create background for fail scene
-  const createFailBackground = () => {
-    if (!backgroundRef.current) return;
-    
-    // Create gas splatter
-    for (let i = 0; i < 15; i++) {
-      const splatter = document.createElement('div');
-      splatter.className = 'absolute rounded-full bg-[#ff6b35] opacity-20';
-      splatter.style.width = `${Math.random() * 50 + 20}px`;
-      splatter.style.height = `${Math.random() * 50 + 20}px`;
-      splatter.style.top = `${Math.random() * 80}%`;
-      splatter.style.left = `${Math.random() * 80}%`;
-      backgroundRef.current.appendChild(splatter);
-      
-      // Animate splatter
-      gsap.from(splatter, {
-        scale: 0,
-        duration: 0.5,
-        delay: Math.random() * 0.5,
-        ease: 'back.out'
-      });
-    }
-    
-    // Create sad cloud
-    const cloud = document.createElement('div');
-    cloud.className = 'absolute rounded-full bg-[#011627] opacity-10';
-    cloud.style.width = '200px';
-    cloud.style.height = '100px';
-    cloud.style.top = '20%';
-    cloud.style.left = '50%';
-    cloud.style.transform = 'translateX(-50%)';
-    backgroundRef.current.appendChild(cloud);
-    
-    // Animate cloud
-    gsap.to(cloud, {
-      y: 10,
-      duration: 2,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    });
-  };
-  
-  // Create background for leaderboard scene
-  const createLeaderboardBackground = () => {
-    if (!backgroundRef.current) return;
-    
-    // Create trophy silhouettes
-    for (let i = 0; i < 5; i++) {
-      const trophy = document.createElement('div');
-      trophy.className = 'absolute bg-[#fdca40] opacity-10';
-      
-      // Trophy cup shape
-      const cup = document.createElement('div');
-      cup.className = 'absolute rounded-full';
-      cup.style.width = '30px';
-      cup.style.height = '20px';
-      cup.style.top = '0';
-      cup.style.left = '5px';
-      trophy.appendChild(cup);
-      
-      // Trophy stem
-      const stem = document.createElement('div');
-      stem.className = 'absolute';
-      stem.style.width = '10px';
-      stem.style.height = '25px';
-      stem.style.top = '15px';
-      stem.style.left = '15px';
-      trophy.appendChild(stem);
-      
-      // Trophy base
-      const base = document.createElement('div');
-      base.className = 'absolute rounded';
-      base.style.width = '30px';
-      base.style.height = '5px';
-      base.style.top = '35px';
-      base.style.left = '5px';
-      trophy.appendChild(base);
-      
-      trophy.style.width = '40px';
-      trophy.style.height = '40px';
-      trophy.style.top = `${Math.random() * 70 + 10}%`;
-      trophy.style.left = `${Math.random() * 70 + 10}%`;
-      trophy.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
-      backgroundRef.current.appendChild(trophy);
-      
-      // Animate trophy
-      gsap.to(trophy, {
-        rotation: `+=${Math.random() * 10 - 5}`,
-        duration: Math.random() * 3 + 2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-    }
-    
-    // Create star particles
-    for (let i = 0; i < 20; i++) {
-      const star = document.createElement('div');
-      star.className = 'absolute bg-[#fdca40] opacity-20';
-      star.style.width = '5px';
-      star.style.height = '5px';
-      star.style.borderRadius = '50%';
-      star.style.top = `${Math.random() * 100}%`;
-      star.style.left = `${Math.random() * 100}%`;
-      backgroundRef.current.appendChild(star);
-      
-      // Animate star
-      gsap.to(star, {
-        scale: Math.random() * 1.5 + 0.5,
-        opacity: Math.random() * 0.2 + 0.1,
-        duration: Math.random() * 2 + 1,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-    }
-  };
-  
+  const isResultScene = scene === 'success' || scene === 'fail' || scene === 'multiplayerSummary';
+
   return (
-    <div 
-      ref={backgroundRef} 
-      className="absolute inset-0 overflow-hidden pointer-events-none z-0"
-      aria-hidden="true"
-    />
+    <div className="forecourt-bg pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      {clouds.map((cloud, index) => (
+        <div
+          key={index}
+          className="forecourt-cloud absolute h-12 rounded-full bg-white"
+          style={{
+            top: cloud.top,
+            left: cloud.left,
+            width: cloud.width,
+            opacity: cloud.opacity,
+            animationDelay: `${index * -7}s`,
+          }}
+        >
+          <span className="absolute -top-5 left-8 h-14 w-20 rounded-full bg-white" />
+          <span className="absolute -top-3 right-8 h-12 w-16 rounded-full bg-white" />
+        </div>
+      ))}
+
+      <div className="absolute bottom-[28%] left-[6%] hidden h-20 w-44 rounded-t-md bg-white/35 md:block" />
+      <div className="absolute bottom-[28%] left-[8%] hidden h-10 w-10 bg-[#d92d20]/70 md:block" />
+      <div className="absolute bottom-[28%] left-[13%] hidden h-10 w-10 bg-[#f6c343]/75 md:block" />
+
+      <div className="station-canopy absolute bottom-[44%] left-1/2 h-10 w-[86vw] max-w-5xl -translate-x-1/2 rounded-b-md bg-[#d92d20]">
+        <div className="absolute left-0 right-0 top-0 h-3 bg-[#f6c343]" />
+        <div className="absolute left-[13%] top-10 h-36 w-5 bg-[#f7f0de]" />
+        <div className="absolute right-[13%] top-10 h-36 w-5 bg-[#f7f0de]" />
+      </div>
+
+      <div className="absolute bottom-[30%] left-1/2 h-16 w-44 -translate-x-1/2 rounded-t-lg bg-[#fff7e8]/60 shadow-md">
+        <div className="mx-auto mt-3 h-5 w-28 rounded-sm bg-[#087f5b]/80" />
+      </div>
+
+      <div className="forecourt-car absolute bottom-[10%] h-8 w-24 rounded-md bg-[#087f5b] shadow-md">
+        <div className="absolute -top-4 left-5 h-5 w-12 rounded-t-md bg-[#fff7e8]" />
+        <div className="absolute -bottom-2 left-3 h-4 w-4 rounded-full bg-neutral-900" />
+        <div className="absolute -bottom-2 right-3 h-4 w-4 rounded-full bg-neutral-900" />
+      </div>
+
+      <div className="forecourt-car forecourt-car--two absolute bottom-[17%] h-7 w-20 rounded-md bg-[#d92d20] shadow-md">
+        <div className="absolute -top-3 left-4 h-4 w-10 rounded-t-md bg-[#fff7e8]" />
+        <div className="absolute -bottom-2 left-3 h-4 w-4 rounded-full bg-neutral-900" />
+        <div className="absolute -bottom-2 right-3 h-4 w-4 rounded-full bg-neutral-900" />
+      </div>
+
+      <div className="absolute bottom-[20%] left-0 h-2 w-full bg-white/65" />
+      <div className="absolute bottom-[8%] left-0 flex w-full justify-around">
+        {[0, 1, 2, 3, 4].map((mark) => (
+          <span key={mark} className="h-2 w-16 rounded-full bg-[#f6c343]" />
+        ))}
+      </div>
+
+      {scene === 'fail' && (
+        <div className="absolute inset-x-0 top-0 h-full bg-[#d92d20]/10" />
+      )}
+
+      {isResultScene && scene !== 'fail' && (
+        <div className="absolute inset-0 bg-white/20" />
+      )}
+
+      {scene === 'success' && (
+        <div className="absolute inset-0">
+          {confetti.map((piece, index) => (
+            <span
+              key={index}
+              className="confetti-piece absolute top-0 rounded-sm"
+              style={piece}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

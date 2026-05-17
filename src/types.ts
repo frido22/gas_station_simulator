@@ -88,19 +88,19 @@ export const LeaderboardTitles: Record<number, string> = {
 
 // Funny messages for success/failure
 export const SuccessMessages: string[] = [
-  'Perfect pump! You\'re a gas-tastic genius!',
-  'Wow! You\'ve got the precision of a surgeon... for gas!',
-  'Pump-tastic! You\'re the Michelangelo of fuel dispensing!',
-  'Holy unleaded! That was spot on!',
-  'You\'ve got gas pumping in your veins! (Not literally, we hope)',
+  'Clean stop. The meter landed inside the perfect zone.',
+  'Excellent control. That release timing was right on the mark.',
+  'Sharp finish. The pump crew would approve.',
+  'Perfect delivery. No spill, no overrun, no drama.',
+  'That was a precision fill from start to stop.',
 ];
 
 export const FailMessages: string[] = [
-  'Oops! You just gave the gas station a free car wash!',
-  'Too much! The tank is crying premium tears!',
-  'Splash zone! Hope you brought a towel!',
-  'That\'s one expensive puddle you just made!',
-  'Congratulations! You just invented the gas fountain!',
+  'Good attempt. Tighten the release timing and run it back.',
+  'The meter got away this time. Watch the last dollar closely.',
+  'Close calls count in practice, but the pump wants precision.',
+  'Reset your timing and aim for a cleaner stop.',
+  'You missed the window. The next run is still yours.',
 ];
 
 // Game settings

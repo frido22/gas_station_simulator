@@ -1,6 +1,7 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { GameState, GameScene, MultiplayerPlayer } from '@/types';
+import { isPerfectStop } from '@/utils/gameRules';
 
 // Define the initial game state
 const initialGameState: GameState = {
@@ -41,7 +42,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [gameScene, setGameScene] = useState<GameScene>('start');
-  const [pumpInterval, setPumpInterval] = useState<NodeJS.Timeout | null>(null);
+  const pumpIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load high score from local storage
   useEffect(() => {
@@ -95,7 +96,10 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Reset the game
   const resetGame = () => {
-    if (pumpInterval) clearInterval(pumpInterval);
+    if (pumpIntervalRef.current) {
+      clearInterval(pumpIntervalRef.current);
+      pumpIntervalRef.current = null;
+    }
     
     setGameState({
       ...initialGameState,
@@ -108,33 +112,34 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // Start pumping gas
   const startPumping = () => {
-    if (pumpInterval) return;
+    if (pumpIntervalRef.current) return;
     
     setGameState(prev => ({ ...prev, isPumping: true }));
     
     const interval = setInterval(() => {
       setGameState(prev => {
-        // Increment by a random amount between 0.1 and 0.5
-        const increment = Math.random() * 0.4 + 0.1;
+        const increment = Math.random() * 0.28 + 0.12;
         const newAmount = parseFloat((prev.currentAmount + increment).toFixed(2));
         
         return { ...prev, currentAmount: newAmount };
       });
-    }, 200); // Changed from 100 to 150
+    }, 150);
     
-    setPumpInterval(interval);
+    pumpIntervalRef.current = interval;
   };
 
   // Stop pumping gas
   const stopPumping = () => {
-    if (pumpInterval) {
-      clearInterval(pumpInterval);
-      setPumpInterval(null);
-    }
-    
-    const finalPumpedAmount = gameState.currentAmount; // Capture amount before reset
+    if (!pumpIntervalRef.current) return;
+
+    clearInterval(pumpIntervalRef.current);
+    pumpIntervalRef.current = null;
     
     setGameState(prev => {
+      if (!prev.isPumping) return prev;
+
+      const finalPumpedAmount = prev.currentAmount;
+
       if (prev.mode === 'multi') {
         // Multiplayer turn logic
         const targetPlayed = prev.targetAmount; // Target for the turn just completed
@@ -180,14 +185,15 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         };
       } else {
         // Single player end
-        const isExact = prev.targetAmount === prev.currentAmount;
-        const newScore = isExact ? Math.round(prev.currentAmount) : 0;
-        const newHighScore = isExact && prev.currentAmount > prev.highScore ? Math.round(prev.currentAmount) : prev.highScore;
+        const isExact = isPerfectStop(finalPumpedAmount, prev.targetAmount);
+        const newScore = isExact ? Math.round(prev.targetAmount) : 0;
+        const newHighScore = isExact && prev.targetAmount > prev.highScore ? Math.round(prev.targetAmount) : prev.highScore;
         // Persist high score immediately when it is beaten
         if (newHighScore > prev.highScore) {
           localStorage.setItem('pumpPerfectionHighScore', newHighScore.toString());
         }
-        endGame(isExact);
+        setGameScene(isExact ? 'success' : 'fail');
+
         return {
           ...prev,
           isPumping: false,
@@ -195,34 +201,21 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           success: isExact,
           score: newScore,
           highScore: newHighScore,
+          level: isExact ? prev.level + 1 : prev.level,
         };
       }
     });
   };
 
-  // End the game
-  const endGame = (success: boolean) => {
-    if (success) {
-      setGameScene('success');
-      
-      // Level up for next round
-      setGameState(prev => ({ 
-        ...prev,
-        level: prev.level + 1
-      }));
-    } else {
-      setGameScene('fail');
-    }
-  };
-
   // Clean up on unmount
   useEffect(() => {
     return () => {
-      if (pumpInterval) {
-        clearInterval(pumpInterval);
+      if (pumpIntervalRef.current) {
+        clearInterval(pumpIntervalRef.current);
+        pumpIntervalRef.current = null;
       }
     };
-  }, [pumpInterval]);
+  }, []);
 
   return (
     <GameContext.Provider
