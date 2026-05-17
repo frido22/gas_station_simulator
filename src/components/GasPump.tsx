@@ -6,7 +6,6 @@ import {
   formatCurrency,
   GAS_PRICE_PER_GALLON,
   getPrecisionLabel,
-  getPumpError,
   isPerfectStop,
 } from '@/utils/gameRules';
 
@@ -14,7 +13,6 @@ export const GasPump: React.FC = () => {
   const { gameState, startPumping, stopPumping, setGameScene } = useGame();
   const { isPumping, currentAmount, targetAmount } = gameState;
   const { playSound, stopSound } = useSounds();
-  const pumpError = getPumpError(currentAmount, targetAmount);
   const statusLabel = getPrecisionLabel(currentAmount, targetAmount);
   const gallons = currentAmount / GAS_PRICE_PER_GALLON;
   const isInPerfectZone = isPerfectStop(currentAmount, targetAmount);
@@ -101,18 +99,11 @@ export const GasPump: React.FC = () => {
               <div className="mt-1 text-5xl font-black leading-none">{formatCurrency(targetAmount)}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3">
               <div className="control-surface rounded-[8px] p-3">
                 <div className="text-xs font-black uppercase text-neutral-500">Now showing</div>
-                <div className={`mt-1 text-2xl font-black ${isOverTarget ? 'text-[#d92d20]' : 'text-neutral-950'}`}>
+                <div className={`mt-1 text-3xl font-black ${isOverTarget ? 'text-[#d92d20]' : 'text-neutral-950'}`}>
                   {formatCurrency(currentAmount)}
-                </div>
-              </div>
-
-              <div className="control-surface rounded-[8px] p-3">
-                <div className="text-xs font-black uppercase text-neutral-500">Difference</div>
-                <div className={`mt-1 text-2xl font-black ${isInPerfectZone ? 'text-[#087f5b]' : isOverTarget ? 'text-[#d92d20]' : 'text-neutral-950'}`}>
-                  {formatCurrency(pumpError)}
                 </div>
               </div>
             </div>
