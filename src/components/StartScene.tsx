@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   MinusIcon,
   PlayIcon,
@@ -15,6 +15,17 @@ const MIN_TARGET = 5;
 const MAX_TARGET = 100;
 
 const clampTarget = (value: number) => Math.min(MAX_TARGET, Math.max(MIN_TARGET, value));
+const resizePlayerNames = (names: string[], count: number) => {
+  const nextNames = [...names];
+
+  if (count > nextNames.length) {
+    for (let i = nextNames.length; i < count; i++) {
+      nextNames.push(`Player ${i + 1}`);
+    }
+  }
+
+  return nextNames.slice(0, count);
+};
 
 const StartScene: React.FC = () => {
   const { startGame, gameState, setTargetAmount } = useGame();
@@ -25,20 +36,6 @@ const StartScene: React.FC = () => {
   const [playerNames, setPlayerNames] = useState<string[]>(
     Array.from({ length: 2 }, (_, i) => `Player ${i + 1}`)
   );
-
-  useEffect(() => {
-    setPlayerNames(prev => {
-      let names = [...prev];
-      if (numPlayers > names.length) {
-        for (let i = names.length; i < numPlayers; i++) {
-          names.push(`Player ${i + 1}`);
-        }
-      } else {
-        names = names.slice(0, numPlayers);
-      }
-      return names;
-    });
-  }, [numPlayers]);
 
   const updateTarget = (value: number) => {
     const clampedValue = clampTarget(Math.round(value / 5) * 5);
@@ -69,18 +66,20 @@ const StartScene: React.FC = () => {
   };
 
   const adjustPlayers = (amount: number) => {
-    setNumPlayers(prev => Math.min(6, Math.max(2, prev + amount)));
+    const nextPlayerCount = Math.min(6, Math.max(2, numPlayers + amount));
+    setNumPlayers(nextPlayerCount);
+    setPlayerNames(prev => resizePlayerNames(prev, nextPlayerCount));
     playSound('button');
   };
 
   return (
-    <section className="grid w-full items-center gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="scene-panel rounded-[8px] p-5 sm:p-7">
+    <section className="grid w-full min-w-0 items-center gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="scene-panel w-full max-w-[calc(100vw-2rem)] min-w-0 overflow-hidden rounded-[8px] p-5 sm:p-7 lg:max-w-none">
         <div className="mb-5 inline-flex items-center rounded-full bg-[#d92d20] px-3 py-1 text-xs font-black uppercase text-white shadow-sm">
           Precision pump challenge
         </div>
 
-        <h1 className="max-w-xl text-4xl font-black leading-none text-neutral-950 sm:text-6xl">
+        <h1 className="max-w-xl text-3xl font-black leading-none text-neutral-950 sm:text-6xl">
           Nail the meter before it runs past the target.
         </h1>
 
@@ -88,7 +87,7 @@ const StartScene: React.FC = () => {
           Pick a dollar goal, hold the pump, and release inside the {formatCurrency(PERFECT_TOLERANCE)} perfect zone.
         </p>
 
-        <div className="mt-6 grid grid-cols-3 gap-3 text-left">
+        <div className="mt-6 grid gap-3 text-left sm:grid-cols-3">
           <div className="control-surface rounded-[8px] p-3">
             <div className="text-xs font-bold uppercase text-neutral-500">Target</div>
             <div className="mt-1 text-2xl font-black">{formatCurrency(targetValue)}</div>
@@ -104,7 +103,7 @@ const StartScene: React.FC = () => {
         </div>
       </div>
 
-      <div className="scene-panel rounded-[8px] p-4 sm:p-5">
+      <div className="scene-panel w-full max-w-[calc(100vw-2rem)] min-w-0 overflow-hidden rounded-[8px] p-4 sm:p-5 lg:max-w-none">
         <div className="grid grid-cols-2 gap-2 rounded-[8px] bg-neutral-900 p-1">
           <button
             onClick={() => {

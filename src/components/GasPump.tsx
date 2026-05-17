@@ -61,8 +61,8 @@ export const GasPump: React.FC = () => {
   };
 
   return (
-    <section className="grid w-full items-center gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(340px,1.1fr)]">
-      <div className="scene-panel order-2 rounded-[8px] p-4 lg:order-1">
+    <section className="grid w-full min-w-0 items-center gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(340px,1.1fr)]">
+      <div className="scene-panel order-2 w-full max-w-[calc(100vw-2rem)] min-w-0 overflow-hidden rounded-[8px] p-4 lg:order-1 lg:max-w-none">
         <div className="mb-4 flex items-center justify-between gap-3">
           <button
             onClick={() => setGameScene('start')}
@@ -121,8 +121,8 @@ export const GasPump: React.FC = () => {
         </div>
       </div>
 
-      <div className="order-1 mt-8 lg:order-2 lg:mt-0">
-        <div className="pump-cabinet relative mx-auto w-full max-w-[430px] rounded-[8px] border border-black/20 p-4 pt-7">
+      <div className="order-1 mt-8 min-w-0 lg:order-2 lg:mt-0">
+        <div className="pump-cabinet relative mx-auto w-full max-w-[min(430px,calc(100vw-2rem))] rounded-[8px] border border-black/20 p-4 pt-7">
           <div className="absolute -top-8 left-1/2 flex h-10 w-48 -translate-x-1/2 items-center justify-center rounded-t-[8px] bg-[#d92d20] text-sm font-black uppercase text-white shadow-md">
             Fuel Shift
           </div>

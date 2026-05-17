@@ -8,11 +8,9 @@ import { formatCurrency, getPumpError } from '@/utils/gameRules';
 const SuccessScene: React.FC = () => {
   const { gameState, resetGame } = useGame();
   const { playSound } = useSounds();
-  const [message, setMessage] = useState('');
+  const [message] = useState(() => SuccessMessages[Math.floor(Math.random() * SuccessMessages.length)]);
 
   useEffect(() => {
-    const randomMessage = SuccessMessages[Math.floor(Math.random() * SuccessMessages.length)];
-    setMessage(randomMessage);
     playSound('success');
   }, [playSound]);
 

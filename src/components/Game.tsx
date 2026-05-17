@@ -82,8 +82,8 @@ const Game: React.FC = () => {
         </button>
       </header>
 
-      <div className="relative z-10 flex min-h-screen w-full items-center justify-center px-4 pb-6 pt-20 sm:px-6">
-        <div className="flex w-full max-w-5xl items-center justify-center">
+      <div className="relative z-10 flex min-h-screen w-full min-w-0 items-center justify-center px-4 pb-6 pt-20 sm:px-6">
+        <div className="flex w-full min-w-0 max-w-5xl items-center justify-center">
           {renderScene()}
         </div>
       </div>

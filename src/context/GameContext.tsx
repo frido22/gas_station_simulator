@@ -49,7 +49,11 @@ export const GameProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const storedHighScore = localStorage.getItem('pumpPerfectionHighScore');
     
     if (storedHighScore) {
-      setGameState(prev => ({ ...prev, highScore: Number(storedHighScore) }));
+      const timeout = window.setTimeout(() => {
+        setGameState(prev => ({ ...prev, highScore: Number(storedHighScore) }));
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
     }
   }, []);
 

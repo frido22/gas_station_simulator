@@ -8,11 +8,9 @@ import { formatCurrency, getPumpError } from '@/utils/gameRules';
 const FailScene: React.FC = () => {
   const { gameState, resetGame, startGame } = useGame();
   const { playSound } = useSounds();
-  const [message, setMessage] = useState('');
+  const [message] = useState(() => FailMessages[Math.floor(Math.random() * FailMessages.length)]);
 
   useEffect(() => {
-    const randomMessage = FailMessages[Math.floor(Math.random() * FailMessages.length)];
-    setMessage(randomMessage);
     playSound('fail');
   }, [playSound]);
 
